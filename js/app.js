@@ -25,45 +25,59 @@ define([
   Profile,
   RoomInfoPage
 ) {
-  window.route = route
-  window.qiscus = qiscus
-  var routes = [
+  window.route = route;
+  window.qiscus = qiscus;
+
+  var pages = [
     LoginPage,
     ChatListPage,
     ChatPage,
     UserPage,
     CreateGroupPage,
     Profile,
-    RoomInfoPage
-  ]
+    RoomInfoPage,
+  ];
+  var pageMap = pages.reduce(function (acc, page) {
+    acc[page.path] = page;
+    return acc;
+  }, {});
 
-  $content.html(LoginPage)
-  if (!qiscus.isLogin) {
-    route.replace('/login')
+  function renderPage(path, state) {
+    var page = pageMap[path];
+    if (page == null) {
+      $content.html('<div class="PageNotFound">Page not found</div>');
+      return;
+    }
+    var view = page.render(state);
+    $content.html(view);
+    if (typeof page.mount === 'function') {
+      page.mount(state);
+    }
   }
 
   emitter.on('qiscus::login-success', function () {
-    route.replace('/chat')
-    localStorage.setItem('authdata', JSON.stringify(qiscus.userData))
-  })
+    route.replace('/chat');
+    localStorage.setItem('authdata', JSON.stringify(qiscus.userData));
+  });
+
   emitter.on('route::change', function (location) {
-    var content = routes.find(function (page) {
-      return page.path === location.pathname
-    })
-    $content.html(content(location.state))
-  })
+    renderPage(location.pathname, location.state);
+  });
 
   $('.widget-container').on('click', 'button.close-btn', function (event) {
-    event.preventDefault()
-    $('.widget-container').slideUp()
-  })
+    event.preventDefault();
+    $('.widget-container').slideUp();
+  });
   $('.toggle-widget-btn').on('click', function (event) {
-    event.preventDefault()
-    $('.widget-container').slideDown()
-  })
+    event.preventDefault();
+    $('.widget-container').slideDown();
+  });
 
   if (localStorage['authdata'] != null) {
-    var authdata = JSON.parse(localStorage['authdata'])
-    qiscus.setUserWithIdentityToken({ user: authdata })
+    var authdata = JSON.parse(localStorage['authdata']);
+    qiscus.setUserWithIdentityToken({ user: authdata });
   }
-})
+
+  var initialPath = qiscus.isLogin ? '/chat' : '/login';
+  route.replace(initialPath);
+});

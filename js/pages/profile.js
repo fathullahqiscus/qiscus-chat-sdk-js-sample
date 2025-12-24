@@ -1,11 +1,13 @@
-define(["jquery", "service/route", "service/content"], function(
-  $,
-  route,
-  $content
-) {
+define([
+  'jquery',
+  'service/page',
+  'service/route',
+  'service/content',
+  'service/qiscus'
+], function ($, createPage, route, $content, qiscus) {
   var avatarBlobURL = null;
 
-  function Profile() {
+  function template() {
     var avatarURL = qiscus.userData.avatar_url;
     var username = qiscus.userData.username;
     var userId = qiscus.userData.email;
@@ -54,59 +56,63 @@ define(["jquery", "service/route", "service/content"], function(
     `;
   }
 
-  $content
-    .on("click", ".Profile #back-btn", function(event) {
-      event.preventDefault();
-      route.push("/chat");
-    })
-    .on("click", ".Profile #avatar-picker-btn", function(event) {
-      $content.find("#input-avatar").click();
-    })
-    .on("change", ".Profile #input-avatar", function(event) {
-      var file = Array.from(event.target.files).pop();
-      if (avatarBlobURL != null) URL.revokeObjectURL(avatarBlobURL);
-      avatarBlobURL = URL.createObjectURL(file);
-      $content.find(".profile-avatar").attr("src", avatarBlobURL);
+  function bindEvents($content) {
+    $content
+      .off('.Profile')
+      .on('click.Profile', '.Profile #back-btn', function (event) {
+        event.preventDefault();
+        route.push('/chat');
+      })
+      .on('click.Profile', '.Profile #avatar-picker-btn', function () {
+        $content.find('#input-avatar').click();
+      })
+      .on('change.Profile', '.Profile #input-avatar', function (event) {
+        var file = Array.from(event.target.files).pop();
+        if (avatarBlobURL != null) URL.revokeObjectURL(avatarBlobURL);
+        avatarBlobURL = URL.createObjectURL(file);
+        $content.find('.profile-avatar').attr('src', avatarBlobURL);
 
-      qiscus.upload(file, function(err, progress, url) {
-        if (err) return console.error("error when uploading new avatar", err);
-        if (progress) return console.info("uploading avatar", progress.percent);
-        if (url) {
-          console.log("done uploading avatar", url);
-          qiscus.userData.avatar_url = url;
-          qiscus.updateProfile({ avatar_url: url }).then(function(resp) {
-            console.log("done updating avatar profile", resp);
-            URL.revokeObjectURL(avatarBlobURL);
+        qiscus.upload(file, function (err, progress, url) {
+          if (err) return console.error('error when uploading new avatar', err);
+          if (progress) return console.info('uploading avatar', progress.percent);
+          if (url) {
+            qiscus.userData.avatar_url = url;
+            qiscus.updateProfile({ avatar_url: url }).then(function () {
+              URL.revokeObjectURL(avatarBlobURL);
+            });
+          }
+        });
+      })
+      .on('click.Profile', '.Profile #edit-name-btn', function (event) {
+        event.preventDefault();
+        $content
+          .find('#input-user-name')
+          .removeAttr('disabled')
+          .focus();
+        $(this).addClass('hidden');
+      })
+      .on('keydown.Profile', '.Profile #input-user-name', function (event) {
+        if (event.keyCode === 13) {
+          $(this).attr('disabled', true);
+          $content.find('#edit-name-btn').removeClass('hidden');
+          var newName = event.target.value;
+          qiscus.updateProfile({ name: newName }).then(function () {
+            qiscus.userData.username = newName;
+            localStorage.setItem('authdata', JSON.stringify(qiscus.userData));
           });
         }
+      })
+      .on('click.Profile', '.Profile #logout-btn', function (event) {
+        event.preventDefault();
+        qiscus.logout();
+        localStorage.clear();
+        route.push('/login');
       });
-    })
-    .on("click", ".Profile #edit-name-btn", function(event) {
-      event.preventDefault();
-      $content
-        .find("#input-user-name")
-        .removeAttr("disabled")
-        .focus();
-      $(this).addClass("hidden");
-    })
-    .on("keydown", ".Profile #input-user-name", function(event) {
-      if (event.keyCode === 13) {
-        $(this).attr("disabled", true);
-        $content.find("#edit-name-btn").removeClass("hidden");
-        var newName = event.target.value;
-        qiscus.updateProfile({ name: newName }).then(function() {
-          qiscus.userData.username = newName;
-          console.log("Done updating profile", qiscus.userData);
-          localStorage.setItem("authdata", JSON.stringify(qiscus.userData));
-        });
-      }
-    })
-    .on("click", ".Profile #logout-btn", function(event) {
-      qiscus.logout();
-      localStorage.clear();
-      route.push("/login");
-    });
+  }
 
-  Profile.path = "/profile";
-  return Profile;
+  return createPage({
+    path: '/profile',
+    template: template,
+    bindEvents: bindEvents
+  });
 });

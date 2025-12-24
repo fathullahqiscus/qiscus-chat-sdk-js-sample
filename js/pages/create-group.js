@@ -1,12 +1,14 @@
 define([
-  'jquery', 'lodash', 'service/qiscus',
-  'service/route', 'service/content'
-], function ($, lodash, qiscus, route, $content) {
+  'jquery',
+  'lodash',
+  'service/page',
+  'service/qiscus',
+  'service/route',
+  'service/content',
+], function ($, lodash, createPage, qiscus, route, $content) {
   var avatarBlobURL = null
   var searchValue = null
   var perPage = 20
-
-  window.$content = $content
 
   function ContactItem(contact) {
     return `
@@ -192,103 +194,117 @@ define([
     `
   }
 
-  $content
-    .on('click', '.CreateGroupPage .contact-item button', function (event) {
-      event.preventDefault()
-      var $el = $(this).closest('li.contact-item')
-      var $selectedContact = $content.find('.selected-contact-container')
-      var isSelected = $el.attr('data-selected')
-      var contactId = $el.attr('data-contact-id')
-      var contactName = $el.attr('data-contact-name')
-      var contactAvatar = $el.attr('data-contact-avatar')
-      var contactEmail = $el.attr('data-contact-userid')
+  function mount() {
+    if (avatarBlobURL != null) {
+      URL.revokeObjectURL(avatarBlobURL)
+      avatarBlobURL = null
+    }
+    searchValue = null
+    loadContacts()
+  }
 
-      if (isSelected) {
+  function bindEvents($content) {
+    $content
+      .off('.CreateGroup')
+      .on('click.CreateGroup', '.CreateGroupPage .contact-item button', function (event) {
+        event.preventDefault()
+        var $el = $(this).closest('li.contact-item')
+        var isSelected = $el.attr('data-selected')
+        var contactId = $el.attr('data-contact-id')
+        var contactName = $el.attr('data-contact-name')
+        var contactAvatar = $el.attr('data-contact-avatar')
+        var contactEmail = $el.attr('data-contact-userid')
+
+        if (isSelected) {
+          removeParticipant(contactId)
+        } else {
+          addParticipant({
+            id: contactId,
+            name: contactName,
+            avatar: contactAvatar,
+            email: contactEmail
+          })
+        }
+      })
+      .on('click.CreateGroup', '.CreateGroupPage .selected-contact-item button', function (event) {
+        event.preventDefault()
+        var $el = $(this).closest('li.selected-contact-item')
+        var contactId = $el.attr('data-contact-id')
+        $el.remove()
+        $(`.CreateGroupPage .contact-item[data-contact-id="${contactId}"`)
+          .removeAttr('data-selected')
+          .find('.icon')
+          .addClass('hidden')
+      })
+      .on('click.CreateGroup', '.CreateGroupPage button#hide-group-info', function () {
+        $('.GroupInfo').animate({ right: -500 })
+      })
+      .on('click.CreateGroup', '.CreateGroupPage #close-create-group', function (event) {
+        event.preventDefault()
+        route.push('/chat')
+      })
+      .on('click.CreateGroup', '.CreateGroupPage button#show-group-info', function () {
+        $('.GroupInfo').animate({ right: 0 })
+      })
+      .on('click.CreateGroup', '.CreateGroupPage button.avatar-picker-btn', function (event) {
+        event.preventDefault()
+        $content.find('input#input-avatar').click()
+      })
+      .on('click.CreateGroup', '.CreateGroupPage button.remove-participant', function (event) {
+        event.preventDefault()
+        var contactId = $(this).closest('li.participant-item').attr('data-contact-id')
         removeParticipant(contactId)
-      } else {
-        addParticipant({
-          id: contactId,
-          name: contactName,
-          avatar: contactAvatar,
-          email: contactEmail
-        })
-      }
-    })
-    .on('click', '.CreateGroupPage .selected-contact-item button', function (event) {
-      event.preventDefault()
-      var $el = $(this).closest('li.selected-contact-item')
-      var contactId = $el.attr('data-contact-id')
-      $el.remove()
-      $(`.CreateGroupPage .contact-item[data-contact-id="${contactId}"`)
-        .removeAttr('data-selected')
-        .find('.icon')
-        .addClass('hidden')
-    })
-    .on('click', '.CreateGroupPage button#hide-group-info', function (event) {
-      $('.GroupInfo').animate({ right: -500 })
-    })
-    .on('click', '.CreateGroupPage #close-create-group', function (event) {
-      route.push('/chat')
-    })
-    .on('click', '.CreateGroupPage button#show-group-info', function (event) {
-      $('.GroupInfo').animate({ right: 0 })
-    })
-    .on('click', '.CreateGroupPage button.avatar-picker-btn', function (event) {
-      event.preventDefault()
-      $content.find('input#input-avatar').click()
-    })
-    .on('click', '.CreateGroupPage button.remove-participant', function (event) {
-      event.preventDefault()
-      var contactId = $(this).closest('li.participant-item').attr('data-contact-id')
-      removeParticipant(contactId)
-    })
-    .on('change', '.CreateGroupPage input#input-avatar', function (event) {
-      var file = Array.from(event.currentTarget.files).pop()
-      if (avatarBlobURL != null) {
-        URL.revokeObjectURL(avatarBlobURL)
-      }
-      avatarBlobURL = URL.createObjectURL(file)
-      $content.find('img.avatar-preview')
-        .attr('src', avatarBlobURL)
-    })
-    .on('click', '.CreateGroupPage #create-group-btn', function (event) {
-      event.preventDefault()
-      var name = $content.find('#group-name-input').val()
-      var avatar = Array.from($content.find('#input-avatar').get(0).files).pop()
-      var participantIds = $content.find('.participant-list')
-        .children()
-        .toArray()
-        .map(function (el) {
-          return el.dataset.contactUserid
-        })
-      qiscus.createGroupRoom(name, participantIds, { avatar: avatar })
-        .then(function (room) {
-          qiscus.getRoomById(room.id)
-            .then(function () {
-              route.push('/chat-room', {
-                roomId: room.id,
-                roomName: room.name,
-                roomAvatar: room.avatarURL
+      })
+      .on('change.CreateGroup', '.CreateGroupPage input#input-avatar', function (event) {
+        var file = Array.from(event.currentTarget.files).pop()
+        if (avatarBlobURL != null) {
+          URL.revokeObjectURL(avatarBlobURL)
+        }
+        avatarBlobURL = URL.createObjectURL(file)
+        $content.find('img.avatar-preview')
+          .attr('src', avatarBlobURL)
+      })
+      .on('click.CreateGroup', '.CreateGroupPage #create-group-btn', function (event) {
+        event.preventDefault()
+        var name = $content.find('#group-name-input').val()
+        var avatar = Array.from($content.find('#input-avatar').get(0).files).pop()
+        var participantIds = $content.find('.participant-list')
+          .children()
+          .toArray()
+          .map(function (el) {
+            return el.dataset.contactUserid
+          })
+        qiscus.createGroupRoom(name, participantIds, { avatar: avatar })
+          .then(function (room) {
+            qiscus.getRoomById(room.id)
+              .then(function () {
+                route.push('/chat-room', {
+                  roomId: room.id,
+                  roomName: room.name,
+                  roomAvatar: room.avatarURL
+                })
               })
-            })
-        })
-    })
-    .on('input', '.CreateGroupPage #search', _.debounce(function (event) {
-      var $el = $(this)
-      var value = $el.val()
-      searchValue = value
-      loadContacts(value)
-    }, 300))
-    .on('click', '.CreateGroupPage #load-more', function (event) {
-      event.preventDefault()
-      var $contactList = $content.find('.contact-list')
-      var childrenLength = $contactList.children().length - 1 // Minus load more button
+          })
+      })
+      .on('input.CreateGroup', '.CreateGroupPage #search', _.debounce(function () {
+        var $el = $(this)
+        var value = $el.val()
+        searchValue = value
+        loadContacts(value)
+      }, 300))
+      .on('click.CreateGroup', '.CreateGroupPage #load-more', function (event) {
+        event.preventDefault()
+        var $contactList = $content.find('.contact-list')
+        var childrenLength = $contactList.children().length - 1
+        var currentPage = Number(Math.min(childrenLength / perPage).toFixed(1))
+        loadMoreContacts(searchValue, currentPage + 1)
+      })
+  }
 
-      var currentPage = Number(Math.min(childrenLength / perPage).toFixed(1))
-
-      loadMoreContacts(searchValue, currentPage + 1)
-    })
-
-  CreateGroup.path = '/create-group'
-  return CreateGroup
+  return createPage({
+    path: '/create-group',
+    template: CreateGroup,
+    bindEvents: bindEvents,
+    onMount: mount
+  })
 })

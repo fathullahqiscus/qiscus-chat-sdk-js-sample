@@ -1,3 +1,14 @@
+:root {
+  --bg: linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%);
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --text: #0f172a;
+  --primary: #0ea371;
+  --primary-strong: #0c8a60;
+  --border: #e5e7eb;
+  --shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -8,42 +19,68 @@ body {
   width: 100vw;
   margin: 0;
   position: relative;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Manrope', 'Open Sans', sans-serif;
   font-size: 11pt;
+  background: var(--bg);
+  color: var(--text);
 }
 
 button {
   outline: none;
+  font-family: inherit;
 }
 
 .hidden {
   display: none !important;
 }
 
-.toggle-widget-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 30px;
-  background: #94ca62;
+.primary-btn {
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
   border: none;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 4px;
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 12px 16px;
   cursor: pointer;
+  box-shadow: 0 10px 30px rgba(14, 163, 113, 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 38px rgba(14, 163, 113, 0.28);
+}
+
+.pill {
+  border-radius: 999px !important;
+}
+
+.toggle-widget-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 28px;
+  background: #0f172a;
+  border: none;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.35);
+  letter-spacing: 0.3px;
 }
 
 .widget-container {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   right: 20px;
-  height: 568px;
-  width: 320px;
+  height: 640px;
+  width: clamp(320px, 32vw, 410px);
   overflow: hidden;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-
+  border-radius: 18px 18px 0 0;
   display: flex;
   flex-direction: column;
+  background: var(--surface);
+  box-shadow: var(--shadow);
 }
 @media screen and (max-width: 400px) {
   .widget-container {
@@ -52,6 +89,7 @@ button {
     left: 0;
     height: 100vh;
     width: 100vw;
+    border-radius: 0;
   }
   .widget-container .title-bar {
     display: none !important;
@@ -59,30 +97,37 @@ button {
 }
 
 .widget-container .title-bar {
-  background: #94ca62;
+  background: linear-gradient(135deg, #0ea371, #0c8a60);
   color: white;
-  height: 30px;
+  height: 38px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 10px;
+  padding: 12px;
   font-size: 10pt;
+  letter-spacing: 0.3px;
+  font-weight: 700;
 }
 
 .widget-container .title-bar .close-btn {
-  background: none;
+  background: rgba(255, 255, 255, 0.15);
   cursor: pointer;
   border: none;
   color: white;
   right: 10px;
   margin-left: auto;
+  border-radius: 8px;
+  height: 28px;
+  width: 28px;
+  display: grid;
+  place-items: center;
 }
 
 .widget-content {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  border: 1px solid #ececec;
+  border: 1px solid var(--border);
   border-top: none;
-  background: white;
+  background: radial-gradient(circle at 20% 20%, #f8fafc, #ffffff 35%, #f1f5f9 70%);
 }

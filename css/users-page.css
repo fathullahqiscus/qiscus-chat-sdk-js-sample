@@ -2,12 +2,13 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: radial-gradient(circle at 8% 8%, #f8fafc 0%, #eef2ff 45%, #f8fafc 80%);
 }
 
 .Users .toolbar {
   flex: 0 0 48px;
   display: flex;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--border);
   justify-content: flex-start;
   align-items: center;
   padding: 0 10px;
@@ -36,20 +37,22 @@
   align-items: center;
   background: white;
   border: none;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--border);
   font-size: 14px;
   color: #2C2C36;
   text-indent: 12px;
   padding: 0 6px;
   cursor: pointer;
+  font-weight: 700;
 }
 
 .Users .search-container {
   flex: 0 0 40px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--border);
   padding: 0 5px;
+  background: #ffffff;
 }
 
 .Users .icon.icon-search {
@@ -69,7 +72,7 @@
 .Users .contact-list-container {
   flex: 1;
   height: 100%;
-  background: #fafafa;
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -81,7 +84,7 @@
   font-size: 10px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: #666;
+  color: var(--muted);
   padding: 10px;
 }
 
@@ -93,6 +96,7 @@
   background: white;
   overflow-y: scroll;
   height: 100%;
+  border-top: 1px solid var(--border);
 }
 
 .Users .contact-list .scrollspy {
@@ -126,9 +130,9 @@
 .Users .contact-item .name {
   flex: 1;
   font-size: 14px;
-  color: #2c2c36;
+  color: var(--text);
   margin-left: 15px;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--border);
   height: 100%;
   display: flex;
   align-items: center;
@@ -142,10 +146,11 @@
 }
 
 .Users .contact-list .load-more button {
-  background: #94ca62;
-  border: none;
-  border-radius: 3px;
-  color: white;
-  padding: 5px 10px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 12px;
   cursor: pointer;
+  font-weight: 700;
 }

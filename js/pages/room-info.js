@@ -1,7 +1,11 @@
 define([
-  'jquery', 'lodash', 'service/content', 'service/route',
-  'service/qiscus'
-], function ($, _, $content, route, qiscus) {
+  'jquery',
+  'lodash',
+  'service/page',
+  'service/content',
+  'service/route',
+  'service/qiscus',
+], function ($, _, createPage, $content, route, qiscus) {
   var blobURL = null
   var searchQuery = null
   var selectedIds = window.selectedIds = []
@@ -139,7 +143,38 @@ define([
     `
   }
 
-  function RoomInfo(state) {
+  function removeParticipant(contactId) {
+    // remove check from contact list
+    var $el = $content.find(`li.contact-item[data-contact-id="${contactId}"]`)
+    $el
+      .removeAttr('data-selected')
+      .find('.icon')
+      .addClass('hidden')
+    var userId = $el.attr('data-contact-userid')
+    var index = selectedIds.findIndex(function (id) {
+      return id === userId
+    })
+    selectedIds.splice(index, 1)
+  }
+  function addParticipant(detail) {
+    // add check mark to contact list
+    var $el = $(`li.contact-item[data-contact-id="${detail.id}"]`)
+    $el
+      .attr('data-selected', true)
+      .find('.icon')
+      .removeClass('hidden')
+
+    var userId = $el.attr('data-contact-userid')
+    selectedIds.push(userId)
+  }
+
+  function mount(state) {
+    selectedIds.splice(0, selectedIds.length)
+    searchQuery = null
+    if (blobURL != null) {
+      URL.revokeObjectURL(blobURL)
+      blobURL = null
+    }
     qiscus.getRoomsInfo({ room_ids: [`${state.roomId}`]})
       .then(function (resp) {
         var info = resp.results.rooms_info.pop()
@@ -172,6 +207,9 @@ define([
             })
         }
       })
+  }
+
+  function template(state) {
     return `
       <div class="RoomInfo">
         ${ContactChooser()}
@@ -201,148 +239,127 @@ define([
     `
   }
 
-  function removeParticipant(contactId) {
-    // remove check from contact list
-    var $el = $content.find(`li.contact-item[data-contact-id="${contactId}"]`)
-    $el
-      .removeAttr('data-selected')
-      .find('.icon')
-      .addClass('hidden')
-    var userId = $el.attr('data-contact-userid')
-    var index = selectedIds.findIndex(function (id) {
-      return id === userId
-    })
-    selectedIds.splice(index, 1)
-  }
-  function addParticipant(detail) {
-    // add check mark to contact list
-    var $el = $(`li.contact-item[data-contact-id="${detail.id}"]`)
-    $el
-      .attr('data-selected', true)
-      .find('.icon')
-      .removeClass('hidden')
-
-    var userId = $el.attr('data-contact-userid')
-    selectedIds.push(userId)
-  }
-
-  $content
-    .on('click', '.RoomInfo #open-contact-chooser-btn', function (event) {
-      event.preventDefault()
-      $content.find('.ContactChooser').slideDown()
-    })
-    .on('click', '.RoomInfo #back-btn', function (event) {
-      event.preventDefault()
-      route.go(-1)
-    })
-    .on('click', '.RoomInfo #edit-room-name-btn', function (event) {
-      event.preventDefault()
-      var $inputName = $content.find('#input-room-name')
-      $inputName
-        .removeAttr('disabled')
-        .focus()
-    })
-    .on('click', '.RoomInfo #avatar-picker-btn', function (event) {
-      event.preventDefault()
-      $content.find('#input-avatar').click()
-    })
-    .on('keydown', '.RoomInfo #input-room-name', function (event) {
-      if (event.keyCode === 13) {
+  function bindEvents($content) {
+    $content
+      .off('.RoomInfo')
+      .on('click.RoomInfo', '.RoomInfo #open-contact-chooser-btn', function (event) {
         event.preventDefault()
-        var name = event.target.value.trim()
-        $(this).attr('disabled', true)
-        qiscus.updateRoom({ id: qiscus.selected.id, room_name: name })
-      }
-    })
-    .on('change', '.RoomInfo #input-avatar', function (event) {
-      var file = Array.from(event.target.files).pop()
-      if (blobURL != null) URL.revokeObjectURL(blobURL)
-      blobURL = URL.createObjectURL(file)
-      $content.find('img.profile-avatar')
-        .attr('src', blobURL)
-
-      qiscus.upload(file, function (err, progress, url) {
-        if (err) return console.log('Error while uploading file', err)
-        if (progress) return
-        if (url) {
-          qiscus.updateRoom({ id: qiscus.selected.id, avatar_url: url })
-            .then(function (resp) {
-              console.log('Success updating avatar', resp)
-            })
+        $content.find('.ContactChooser').slideDown()
+      })
+      .on('click.RoomInfo', '.RoomInfo #back-btn', function (event) {
+        event.preventDefault()
+        route.go(-1)
+      })
+      .on('click.RoomInfo', '.RoomInfo #edit-room-name-btn', function (event) {
+        event.preventDefault()
+        var $inputName = $content.find('#input-room-name')
+        $inputName
+          .removeAttr('disabled')
+          .focus()
+      })
+      .on('click.RoomInfo', '.RoomInfo #avatar-picker-btn', function (event) {
+        event.preventDefault()
+        $content.find('#input-avatar').click()
+      })
+      .on('keydown.RoomInfo', '.RoomInfo #input-room-name', function (event) {
+        if (event.keyCode === 13) {
+          event.preventDefault()
+          var name = event.target.value.trim()
+          $(this).attr('disabled', true)
+          qiscus.updateRoom({ id: qiscus.selected.id, room_name: name })
         }
       })
-    })
-    .on('click', '.RoomInfo #remove-participant-btn', function (event) {
-      event.preventDefault()
-      var $el = $(this)
-      var userId = $el.attr('data-userid')
-      qiscus.removeParticipantsFromGroup(qiscus.selected.id, [userId])
-        .then(function (resp) {
-          $el.closest('li.participant-item').remove()
-        })
-    })
-    // Contact chooser
-    .on('click', '.RoomInfo #close-contact-chooser', function () {
-      $content.find('.ContactChooser').slideUp()
-    })
-    .on('click', '.RoomInfo .contact-item button', function (event) {
-      event.preventDefault()
-      var $el = $(this).closest('li.contact-item')
-      var $selectedContact = $content.find('.selected-contact-container')
-      var isSelected = $el.attr('data-selected')
-      var contactId = $el.attr('data-contact-id')
-      var contactName = $el.attr('data-contact-name')
-      var contactAvatar = $el.attr('data-contact-avatar')
-      var contactEmail = $el.attr('data-contact-userid')
+      .on('change.RoomInfo', '.RoomInfo #input-avatar', function (event) {
+        var file = Array.from(event.target.files).pop()
+        if (blobURL != null) URL.revokeObjectURL(blobURL)
+        blobURL = URL.createObjectURL(file)
+        $content.find('img.profile-avatar')
+          .attr('src', blobURL)
 
-      if (isSelected) {
-        removeParticipant(contactId)
-      } else {
-        addParticipant({
-          id: contactId,
-          name: contactName,
-          avatar: contactAvatar,
-          email: contactEmail
+        qiscus.upload(file, function (err, progress, url) {
+          if (err) return console.log('Error while uploading file', err)
+          if (progress) return
+          if (url) {
+            qiscus.updateRoom({ id: qiscus.selected.id, avatar_url: url })
+              .then(function (resp) {
+                console.log('Success updating avatar', resp)
+              })
+          }
         })
-      }
-    })
-    .on('click', '.RoomInfo #add-participant-btn', function (event) {
-      event.preventDefault()
-      qiscus.addParticipantsToGroup(qiscus.selected.id, selectedIds)
-        .then(function (users) {
-          var participants = users.map(function (user) {
-            return ParticipantItem(user)
-          }).join('')
-          $content.find('.participant-list')
-            .append(participants)
-          $content.find('.ContactChooser').slideUp()
-          selectedIds.splice(0, selectedIds.length)
-        })
-    })
-    .on('input', '.RoomInfo #search', function (event) {
-      var query = $(this).val()
-      if (query.length === 0) searchQuery = null
-      else searchQuery = query
+      })
+      .on('click.RoomInfo', '.RoomInfo #remove-participant-btn', function (event) {
+        event.preventDefault()
+        var $el = $(this)
+        var userId = $el.attr('data-userid')
+        qiscus.removeParticipantsFromGroup(qiscus.selected.id, [userId])
+          .then(function () {
+            $el.closest('li.participant-item').remove()
+          })
+      })
+      .on('click.RoomInfo', '.RoomInfo #close-contact-chooser', function () {
+        $content.find('.ContactChooser').slideUp()
+      })
+      .on('click.RoomInfo', '.RoomInfo .contact-item button', function (event) {
+        event.preventDefault()
+        var $el = $(this).closest('li.contact-item')
+        var isSelected = $el.attr('data-selected')
+        var contactId = $el.attr('data-contact-id')
+        var contactName = $el.attr('data-contact-name')
+        var contactAvatar = $el.attr('data-contact-avatar')
+        var contactEmail = $el.attr('data-contact-userid')
 
-      return qiscus.getUsers(searchQuery)
-        .then(function (resp) {
-          var users = resp.users.map(function (user) {
-            var selected = selectedIds.includes(user.email)
-            return ContactItem(user, selected)
-          }).join('')
-          $content.find('.contact-list')
-            .empty()
-            .append(users)
-            .append('<li class="load-more"><button>Load more</button></li>')
-        })
-    })
-    .on('click', '.RoomInfo .load-more button', function (event) {
-      event.preventDefault()
+        if (isSelected) {
+          removeParticipant(contactId)
+        } else {
+          addParticipant({
+            id: contactId,
+            name: contactName,
+            avatar: contactAvatar,
+            email: contactEmail
+          })
+        }
+      })
+      .on('click.RoomInfo', '.RoomInfo #add-participant-btn', function (event) {
+        event.preventDefault()
+        qiscus.addParticipantsToGroup(qiscus.selected.id, selectedIds)
+          .then(function (users) {
+            var participants = users.map(function (user) {
+              return ParticipantItem(user)
+            }).join('')
+            $content.find('.participant-list')
+              .append(participants)
+            $content.find('.ContactChooser').slideUp()
+            selectedIds.splice(0, selectedIds.length)
+          })
+      })
+      .on('input.RoomInfo', '.RoomInfo #search', function (event) {
+        var query = $(this).val()
+        if (query.length === 0) searchQuery = null
+        else searchQuery = query
 
-      var currentLength = $content.find('.RoomInfo .contact-list').children().length - 1
-      loadContact(currentLength)
-    })
+        return qiscus.getUsers(searchQuery)
+          .then(function (resp) {
+            var users = resp.users.map(function (user) {
+              var selected = selectedIds.includes(user.email)
+              return ContactItem(user, selected)
+            }).join('')
+            $content.find('.contact-list')
+              .empty()
+              .append(users)
+              .append('<li class="load-more"><button>Load more</button></li>')
+          })
+      })
+      .on('click.RoomInfo', '.RoomInfo .load-more button', function (event) {
+        event.preventDefault()
+        var currentLength = $content.find('.RoomInfo .contact-list').children().length - 1
+        loadContact(currentLength)
+      })
+  }
 
-  RoomInfo.path = '/room-info'
-  return RoomInfo
+  return createPage({
+    path: '/room-info',
+    template: template,
+    bindEvents: bindEvents,
+    onMount: mount
+  })
 })
