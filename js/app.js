@@ -106,10 +106,14 @@ define([
   $('.widget-container').on('click', 'button.close-btn', function (event) {
     event.preventDefault();
     $('.widget-container').slideUp();
+    // Show toggle button when widget is closed
+    $('.toggle-widget-btn').fadeIn(200);
   });
   $('.toggle-widget-btn').on('click', function (event) {
     event.preventDefault();
     $('.widget-container').slideDown();
+    // Hide toggle button when widget is open
+    $('.toggle-widget-btn').fadeOut(200);
   });
 
   // App ID Setup Logic
