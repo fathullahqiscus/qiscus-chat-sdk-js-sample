@@ -58,6 +58,9 @@ define([
             </div>
           </div>
         </div>
+        <button type="button" class="fab-new-chat" title="New Chat">
+          <i class="icon icon-new-chat"></i>
+        </button>
       </div>
     `;
   }
@@ -108,6 +111,9 @@ define([
             </button>
           </li>
         </ul>
+        <button type="button" class="fab-new-chat" title="New Chat">
+          <i class="icon icon-new-chat"></i>
+        </button>
       </div>
     `;
   }
@@ -170,7 +176,7 @@ define([
           });
         });
       })
-      .on('click.ChatList', '.ChatList .start-chat', function (event) {
+      .on('click.ChatList', '.ChatList .start-chat, .ChatList .fab-new-chat', function (event) {
         event.preventDefault();
         route.push('/users');
       })
