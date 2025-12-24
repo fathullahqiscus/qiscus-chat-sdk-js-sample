@@ -59,15 +59,38 @@ button {
   position: fixed;
   bottom: 24px;
   right: 28px;
-  background: #0f172a;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
   border: none;
   color: #ffffff;
-  padding: 12px 18px;
+  padding: 14px 24px;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.35);
-  letter-spacing: 0.3px;
+  box-shadow: 0 8px 28px rgba(14, 163, 113, 0.4), 0 2px 8px rgba(14, 163, 113, 0.25);
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
 }
+
+.toggle-widget-btn::before {
+  content: '💬';
+  font-size: 18px;
+}
+
+.toggle-widget-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 14px 40px rgba(14, 163, 113, 0.5), 0 4px 12px rgba(14, 163, 113, 0.35);
+}
+
+.toggle-widget-btn:active {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 6px 20px rgba(14, 163, 113, 0.4);
+}
+
 
 .widget-container {
   position: fixed;
@@ -76,11 +99,15 @@ button {
   height: 640px;
   width: clamp(320px, 32vw, 410px);
   overflow: hidden;
-  border-radius: 18px 18px 0 0;
+  border-radius: 20px 20px 0 0;
   display: flex;
   flex-direction: column;
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.02), 
+              0 12px 48px rgba(15, 23, 42, 0.15),
+              0 24px 80px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-bottom: none;
 }
 @media screen and (max-width: 400px) {
   .widget-container {
@@ -97,31 +124,44 @@ button {
 }
 
 .widget-container .title-bar {
-  background: linear-gradient(135deg, #0ea371, #0c8a60);
+  background: linear-gradient(135deg, #0ea371 0%, #0c8a60 100%);
   color: white;
-  height: 38px;
+  height: 52px;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 12px;
-  font-size: 10pt;
+  padding: 14px 16px;
+  font-size: 14px;
   letter-spacing: 0.3px;
-  font-weight: 700;
+  font-weight: 800;
+  box-shadow: 0 2px 12px rgba(14, 163, 113, 0.15);
 }
 
 .widget-container .title-bar .close-btn {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   cursor: pointer;
   border: none;
   color: white;
   right: 10px;
   margin-left: auto;
-  border-radius: 8px;
-  height: 28px;
-  width: 28px;
+  border-radius: 10px;
+  height: 32px;
+  width: 32px;
   display: grid;
   place-items: center;
+  transition: all 150ms ease;
+  backdrop-filter: blur(4px);
 }
+
+.widget-container .title-bar .close-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.widget-container .title-bar .close-btn:active {
+  transform: scale(0.98);
+}
+
 
 .widget-content {
   height: 100%;
