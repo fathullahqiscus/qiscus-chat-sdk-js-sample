@@ -202,6 +202,38 @@ define([
         $connectionStatus.text('⚠️ Disconnected').removeClass('active').addClass('inactive');
       }
 
+      // Update Broker URLs
+      if (qiscus.mqttURL) {
+        $('#broker-url').text(qiscus.mqttURL);
+      }
+      if (qiscus.brokerLbUrl) {
+        $('#broker-lb-url').text(qiscus.brokerLbUrl);
+      }
+
+      // Update SDK Configuration
+      $('#sdk-config').removeClass('hidden');
+
+      // Helper function to format boolean values
+      function formatBoolean(value) {
+        if (value === true) {
+          return '<span class="enabled">✅ Enabled</span>';
+        } else if (value === false) {
+          return '<span class="disabled">❌ Disabled</span>';
+        }
+        return '-';
+      }
+
+      // Update config values
+      if (qiscus.syncInterval !== undefined) {
+        $('#sync-interval').text(qiscus.syncInterval + ' ms');
+      }
+      $('#sync-on-connect').html(formatBoolean(qiscus.syncOnConnect));
+      $('#enable-lb').html(formatBoolean(qiscus.enableLb));
+      $('#enable-realtime').html(formatBoolean(qiscus.enableRealtime));
+      $('#enable-realtime-check').html(formatBoolean(qiscus.enableRealtimeCheck));
+      $('#enable-sync').html(formatBoolean(qiscus.enableSync));
+      $('#enable-sync-event').html(formatBoolean(qiscus.enableSyncEvent));
+
       // Update Last Update Time
       var now = new Date();
       var timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });

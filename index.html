@@ -51,6 +51,82 @@
 						<span class="status-label">Last Update</span>
 						<span class="status-value" id="last-update">-</span>
 					</div>
+					<div class="status-item">
+						<span class="status-label">Broker URL</span>
+						<span class="status-value" id="broker-url">-</span>
+					</div>
+					<div class="status-item">
+						<span class="status-label">Broker LB URL</span>
+						<span class="status-value" id="broker-lb-url">-</span>
+					</div>
+				</div>
+			</div>
+
+			<div id="sdk-config" class="sdk-config hidden">
+				<h3>SDK Configuration</h3>
+				<div class="config-grid">
+					<div class="config-item" title="Interval waktu untuk sinkronisasi data (dalam milidetik)">
+						<span class="config-label">
+							<span class="config-icon">⏱️</span>
+							Sync Interval
+						</span>
+						<span class="config-value" id="sync-interval">-</span>
+						<span class="config-desc">Waktu jeda antar sinkronisasi</span>
+					</div>
+
+					<div class="config-item" title="Sinkronisasi otomatis saat koneksi terhubung">
+						<span class="config-label">
+							<span class="config-icon">🔄</span>
+							Sync On Connect
+						</span>
+						<span class="config-value" id="sync-on-connect">-</span>
+						<span class="config-desc">Auto-sync saat terhubung</span>
+					</div>
+
+					<div class="config-item" title="Menggunakan Load Balancer untuk distribusi beban">
+						<span class="config-label">
+							<span class="config-icon">⚖️</span>
+							Load Balancer
+						</span>
+						<span class="config-value" id="enable-lb">-</span>
+						<span class="config-desc">Distribusi beban server</span>
+					</div>
+
+					<div class="config-item" title="Fitur real-time messaging menggunakan MQTT">
+						<span class="config-label">
+							<span class="config-icon">⚡</span>
+							Realtime
+						</span>
+						<span class="config-value" id="enable-realtime">-</span>
+						<span class="config-desc">Pesan instan via MQTT</span>
+					</div>
+
+					<div class="config-item" title="Pengecekan status koneksi real-time secara berkala">
+						<span class="config-label">
+							<span class="config-icon">🔍</span>
+							Realtime Check
+						</span>
+						<span class="config-value" id="enable-realtime-check">-</span>
+						<span class="config-desc">Monitor koneksi berkala</span>
+					</div>
+
+					<div class="config-item" title="Sinkronisasi data pesan dan room secara otomatis">
+						<span class="config-label">
+							<span class="config-icon">🔃</span>
+							Sync
+						</span>
+						<span class="config-value" id="enable-sync">-</span>
+						<span class="config-desc">Sinkronisasi data otomatis</span>
+					</div>
+
+					<div class="config-item" title="Sinkronisasi event dan notifikasi">
+						<span class="config-label">
+							<span class="config-icon">📡</span>
+							Sync Event
+						</span>
+						<span class="config-value" id="enable-sync-event">-</span>
+						<span class="config-desc">Sinkronisasi event & notif</span>
+					</div>
 				</div>
 			</div>
 		</div>
