@@ -79,3 +79,31 @@
   box-shadow: 0 8px 20px rgba(14, 163, 113, 0.22);
   transform: translateY(-1px);
 }
+
+.Toolbar .icon-btn {
+  flex: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(229, 231, 235, 0.9);
+  background: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  display: grid;
+  place-items: center;
+  transition: all 140ms ease;
+}
+
+.Toolbar .icon-btn:hover {
+  background: #f8fafc;
+  border-color: rgba(14, 163, 113, 0.3);
+  box-shadow: 0 8px 20px rgba(14, 163, 113, 0.15);
+  transform: translateY(-1px);
+}
+
+.Toolbar .icon-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+

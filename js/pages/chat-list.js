@@ -27,6 +27,9 @@ define([
           <div class="toolbar-title">Conversations</div>
         </div>
         <div class="toolbar-actions">
+          <button id="logout-btn" type="button" class="icon-btn" title="Logout">
+            <i class="icon icon-logout"></i>
+          </button>
           <button id="profile-btn" type="button" class="avatar-btn">
             <img src="${qiscus.userData.avatar_url}">
           </button>
@@ -173,6 +176,34 @@ define([
       })
       .on('click.ChatList', '.ChatList #profile-btn', function () {
         route.push('/profile');
+      })
+      .on('click.ChatList', '.ChatList #logout-btn', function (event) {
+        event.preventDefault();
+        if (confirm('Are you sure you want to logout?')) {
+          console.log('🔴 Logging out... isLogin before:', qiscus.isLogin);
+
+          // Manually clear authentication state
+          qiscus.isLogin = false;
+          qiscus.userData = {};
+
+          // Clear localStorage
+          localStorage.removeItem('authdata');
+
+          try {
+            // Disconnect from Qiscus
+            qiscus.disconnect();
+          } catch (error) {
+            // Ignore disconnect errors - they're expected when terminating connections
+            console.log('Disconnect error (expected):', error.message);
+          }
+
+          console.log('🔴 Logged out. isLogin after:', qiscus.isLogin);
+
+          // Redirect to login after clearing state
+          setTimeout(function () {
+            route.push('/login');
+          }, 200);
+        }
       })
       .on('click.ChatList', '.ChatList .load-more button', function (event) {
         event.preventDefault();
