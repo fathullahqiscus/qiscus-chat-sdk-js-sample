@@ -55,6 +55,120 @@ button {
   border-radius: 999px !important;
 }
 
+/* App ID Setup Form */
+.app-id-setup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.app-id-setup-container.hidden {
+  display: none;
+}
+
+.app-id-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.15), 
+              0 8px 24px rgba(15, 23, 42, 0.1);
+  padding: 40px 36px;
+  max-width: 480px;
+  width: 100%;
+  backdrop-filter: blur(12px);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-id-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.app-id-header h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 12px 0;
+  letter-spacing: -0.5px;
+}
+
+.app-id-header p {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0;
+  font-weight: 500;
+}
+
+.app-id-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.app-id-form .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app-id-form .input-group label {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+  letter-spacing: 0.2px;
+}
+
+.app-id-form .input-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: #ffffff;
+  transition: all 200ms ease;
+  outline: none;
+}
+
+.app-id-form .input-group input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(14, 163, 113, 0.1);
+}
+
+.app-id-form .input-group .helper-text {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.app-id-form .primary-btn {
+  width: 100%;
+  height: 52px;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+
+
 .toggle-widget-btn {
   position: fixed;
   bottom: 24px;

@@ -112,6 +112,63 @@ define([
     $('.widget-container').slideDown();
   });
 
+  // App ID Setup Logic
+  var savedAppId = localStorage.getItem('qiscus_app_id');
+
+  if (savedAppId) {
+    // If App ID is saved, use it and show chat button
+    console.log('📦 Using saved App ID:', savedAppId);
+    window.APP_ID = savedAppId;
+
+    // Initialize Qiscus with saved App ID
+    if (typeof window.initQiscus === 'function') {
+      console.log('🔄 Initializing Qiscus on page load...');
+      window.initQiscus(savedAppId);
+    }
+
+    $('#app-id-setup').addClass('hidden');
+    $('.toggle-widget-btn').show();
+  } else {
+    // Show setup form
+    console.log('❌ No App ID found, showing setup form');
+    $('#app-id-setup').removeClass('hidden');
+    $('.toggle-widget-btn').hide();
+  }
+
+  // Handle App ID form submission
+  $('#init-app-btn').on('click', function () {
+    var appId = $('#app-id-input').val().trim();
+
+    if (!appId) {
+      alert('Please enter an App ID');
+      return;
+    }
+
+    console.log('🚀 Initializing with App ID:', appId);
+
+    // Save App ID to localStorage
+    localStorage.setItem('qiscus_app_id', appId);
+    window.APP_ID = appId;
+
+    // Initialize Qiscus with the App ID
+    if (typeof window.initQiscus === 'function') {
+      window.initQiscus(appId);
+    }
+
+    // Hide setup form and show chat button
+    $('#app-id-setup').addClass('hidden');
+    $('.toggle-widget-btn').show();
+
+    console.log('✅ Qiscus initialized successfully!');
+  });
+
+  // Allow Enter key to submit form
+  $('#app-id-input').on('keypress', function (e) {
+    if (e.which === 13) {
+      $('#init-app-btn').click();
+    }
+  });
+
   if (localStorage['authdata'] != null) {
     var authdata = JSON.parse(localStorage['authdata']);
     qiscus.setUserWithIdentityToken({ user: authdata });
