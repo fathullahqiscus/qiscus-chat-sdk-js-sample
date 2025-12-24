@@ -98,8 +98,8 @@ define([
           </button>
         </li>
         ${data.participants.map(function (user) {
-          return ParticipantItem(user)
-        }).join('')}
+      return ParticipantItem(user)
+    }).join('')}
       </ul>
     `
   }
@@ -120,7 +120,7 @@ define([
           <button type="button" id="close-contact-chooser" class="toolbar-btn">
             <i class="icon icon-arrow-left-green"></i>
           </button>
-          <h3 class="toolbar-title">Choose Contacts</h3>
+          <h3 class="toolbar-title">Create New Chat</h3>
           <button type="button" id="add-participant-btn" class="toolbar-btn">
             <i class="icon icon-arrow-right-green"></i>
           </button>
@@ -175,7 +175,7 @@ define([
       URL.revokeObjectURL(blobURL)
       blobURL = null
     }
-    qiscus.getRoomsInfo({ room_ids: [`${state.roomId}`]})
+    qiscus.getRoomsInfo({ room_ids: [`${state.roomId}`] })
       .then(function (resp) {
         var info = resp.results.rooms_info.pop()
         if (info.chat_type === 'single') {

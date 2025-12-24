@@ -254,7 +254,7 @@ define(
             <button type="button" class="back-btn">
               <i class="icon icon-arrow-back"></i>
             </button>
-            <div class="toolbar-title">Choose Contacts</div>
+            <div class="toolbar-title">Create New Chat</div>
           </div>
 
           <div class="user-form-card">

@@ -125,7 +125,7 @@ define([
           <button type="button" id="close-create-group" class="toolbar-btn">
             <i class="icon icon-arrow-left-green"></i>
           </button>
-          <h3 class="toolbar-title">Choose Contacts</h3>
+          <h3 class="toolbar-title">Create New Chat</h3>
           <button type="button" id="show-group-info" class="toolbar-btn">
             <i class="icon icon-arrow-right-green"></i>
           </button>
