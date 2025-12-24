@@ -180,4 +180,40 @@ define([
 
   var initialPath = qiscus.isLogin ? '/chat' : '/login';
   route.replace(initialPath);
+
+  // Update SDK Status Display
+  function updateSDKStatus() {
+    if (qiscus.isLogin && qiscus.userData) {
+      $('#sdk-status').removeClass('hidden');
+
+      // Update App ID
+      $('#app-id-display').text(window.APP_ID || '-');
+
+      // Update User
+      var userName = qiscus.userData.username || qiscus.userData.email || 'Unknown';
+      $('#user-display').text(userName);
+
+      // Update Connection Status
+      var isConnected = qiscus.realtimeAdapter && qiscus.realtimeAdapter.connected;
+      var $connectionStatus = $('#connection-status');
+      if (isConnected) {
+        $connectionStatus.text('✅ Active').removeClass('inactive').addClass('active');
+      } else {
+        $connectionStatus.text('⚠️ Disconnected').removeClass('active').addClass('inactive');
+      }
+
+      // Update Last Update Time
+      var now = new Date();
+      var timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      $('#last-update').text(timeStr);
+    } else {
+      $('#sdk-status').addClass('hidden');
+    }
+  }
+
+  // Update status every second
+  setInterval(updateSDKStatus, 1000);
+
+  // Initial update
+  setTimeout(updateSDKStatus, 500);
 });

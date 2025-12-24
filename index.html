@@ -24,6 +24,38 @@
 </head>
 
 <body>
+	<!-- Landing Page -->
+	<div id="landing-page" class="landing-page">
+		<div class="landing-container">
+			<div class="landing-hero">
+				<h1>🚀 Qiscus Chat SDK</h1>
+				<p class="hero-subtitle">Sample Implementation & Testing Environment</p>
+			</div>
+
+			<div id="sdk-status" class="sdk-status hidden">
+				<h3>SDK Status</h3>
+				<div class="status-grid">
+					<div class="status-item">
+						<span class="status-label">Connection</span>
+						<span class="status-value" id="connection-status">Checking...</span>
+					</div>
+					<div class="status-item">
+						<span class="status-label">App ID</span>
+						<span class="status-value" id="app-id-display">-</span>
+					</div>
+					<div class="status-item">
+						<span class="status-label">User</span>
+						<span class="status-value" id="user-display">Not logged in</span>
+					</div>
+					<div class="status-item">
+						<span class="status-label">Last Update</span>
+						<span class="status-value" id="last-update">-</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<!-- App ID Setup Form -->
 	<div id="app-id-setup" class="app-id-setup-container">
 		<div class="app-id-card">
