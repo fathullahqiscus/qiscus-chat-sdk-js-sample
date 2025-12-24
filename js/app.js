@@ -227,7 +227,7 @@ define([
       if (qiscus.syncInterval !== undefined) {
         $('#sync-interval').text(qiscus.syncInterval + ' ms');
       }
-      $('#sync-on-connect').html(formatBoolean(qiscus.syncOnConnect));
+      $('#sync-on-connect').text(qiscus.syncOnConnect + ' ms');
       $('#enable-lb').html(formatBoolean(qiscus.enableLb));
       $('#enable-realtime').html(formatBoolean(qiscus.enableRealtime));
       $('#enable-realtime-check').html(formatBoolean(qiscus.enableRealtimeCheck));
