@@ -1,13 +1,56 @@
 define(
-  ['jquery', 'service/page', 'service/qiscus', 'service/html'],
-  function ($, createPage, qiscus, html) {
+  ['jquery', 'service/page', 'service/qiscus', 'service/html', 'service/toast'],
+  function ($, createPage, qiscus, html, toast) {
     function handleLoginSubmit(event) {
       event.preventDefault();
-      var userId = $('#user-id').val();
-      var username = $('#username').val();
-      var userKey = $('#user-key').val();
-      if (!userId || !userKey) return;
-      qiscus.setUser(userId, userKey, username);
+
+      var userId = $('#user-id').val().trim();
+      var username = $('#username').val().trim();
+      var userKey = $('#user-key').val().trim();
+
+      // Validation
+      if (!userId) {
+        toast.warning('Please enter your User ID');
+        return;
+      }
+
+      if (!userKey) {
+        toast.warning('Please enter your User Key');
+        return;
+      }
+
+      // Disable button and show loading
+      var $btn = $('#submit-login-btn');
+      var originalText = $btn.html();
+      $btn.prop('disabled', true).html('Signing in...');
+
+      // Attempt login
+      qiscus.setUser(userId, userKey, username)
+        .then(function (user) {
+          toast.success('Welcome back, ' + (username || userId) + '!');
+          // Button will be re-enabled by page navigation
+        })
+        .catch(function (error) {
+          console.error('Login error:', error);
+
+          // Re-enable button
+          $btn.prop('disabled', false).html(originalText);
+
+          // Parse error message
+          var errorMessage = 'Login failed. Please check your credentials';
+
+          if (error && error.message) {
+            if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+              errorMessage = 'Invalid User ID or User Key';
+            } else if (error.message.includes('network') || error.message.includes('Network')) {
+              errorMessage = 'Network error. Please check your connection';
+            } else if (error.message.includes('timeout')) {
+              errorMessage = 'Request timeout. Please try again';
+            }
+          }
+
+          toast.error(errorMessage);
+        });
     }
 
     function bindEvents($content) {
