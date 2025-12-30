@@ -19,16 +19,21 @@ define([
     var selected = qiscus.selected || { participants: [], room_type: 'single' };
     var isGroup = selected.room_type === 'group';
     var participants = (function () {
-      var limit = 3;
-      var overflowCount = (selected.participants || []).length - limit;
-      var participantNames = (selected.participants || [])
+      var limit = 2; // Show max 2 names
+      var allParticipants = selected.participants || [];
+      var overflowCount = allParticipants.length - limit;
+
+      var participantNames = allParticipants
         .slice(0, limit)
         .map(function (it) {
-          return it.username.split(' ')[0];
+          return it.username; // Use full username
         });
-      if ((selected.participants || []).length <= limit)
+
+      if (allParticipants.length <= limit) {
         return participantNames.join(', ');
-      return participantNames.concat('and ' + overflowCount + ' others.').join(', ');
+      }
+
+      return participantNames.join(', ') + ', and ' + overflowCount + ' more...';
     })();
 
     return `
