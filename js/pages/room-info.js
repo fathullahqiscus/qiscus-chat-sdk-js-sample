@@ -368,15 +368,26 @@ define([
           .focus()
       })
       .on('click.RoomInfo', '.RoomInfo #avatar-picker-btn', function (event) {
-        event.preventDefault()
-        $content.find('#input-avatar').click()
+        event.preventDefault();
+        $content.find('#input-avatar').click();
       })
       .on('keydown.RoomInfo', '.RoomInfo #input-room-name', function (event) {
         if (event.keyCode === 13) {
-          event.preventDefault()
-          var name = event.target.value.trim()
-          $(this).attr('disabled', true)
+          event.preventDefault();
+          var name = event.target.value.trim();
+          if (!name) {
+            toast.warning('Room name cannot be empty');
+            return;
+          }
+          $(this).attr('disabled', true);
           qiscus.updateRoom({ id: qiscus.selected.id, room_name: name })
+            .then(function () {
+              toast.success('Room name updated successfully');
+            })
+            .catch(function (error) {
+              toast.error('Failed to update room name');
+              console.error('Error updating room name:', error);
+            });
         }
       })
       .on('change.RoomInfo', '.RoomInfo #input-avatar', function (event) {
@@ -387,24 +398,41 @@ define([
           .attr('src', blobURL)
 
         qiscus.upload(file, function (err, progress, url) {
-          if (err) return console.log('Error while uploading file', err)
-          if (progress) return
+          if (err) {
+            toast.error('Failed to upload avatar');
+            console.log('Error while uploading file', err);
+            return;
+          }
+          if (progress) {
+            // Could show progress toast here if needed
+            return;
+          }
           if (url) {
             qiscus.updateRoom({ id: qiscus.selected.id, avatar_url: url })
               .then(function (resp) {
-                console.log('Success updating avatar', resp)
+                toast.success('Room avatar updated successfully');
+                console.log('Success updating avatar', resp);
               })
+              .catch(function (error) {
+                toast.error('Failed to update room avatar');
+                console.error('Error updating avatar:', error);
+              });
           }
-        })
+        });
       })
       .on('click.RoomInfo', '.RoomInfo #remove-participant-btn', function (event) {
-        event.preventDefault()
-        var $el = $(this)
-        var userId = $el.attr('data-userid')
+        event.preventDefault();
+        var $el = $(this);
+        var userId = $el.attr('data-userid');
         qiscus.removeParticipantsFromGroup(qiscus.selected.id, [userId])
           .then(function () {
-            $el.closest('li.participant-item').remove()
+            $el.closest('li.participant-item').remove();
+            toast.success('Participant removed successfully');
           })
+          .catch(function (error) {
+            toast.error('Failed to remove participant');
+            console.error('Error removing participant:', error);
+          });
       })
       .on('click.RoomInfo', '.RoomInfo #close-contact-chooser', function () {
         $content.find('.ContactChooser').slideUp()
@@ -430,17 +458,26 @@ define([
         }
       })
       .on('click.RoomInfo', '.RoomInfo #add-participant-btn', function (event) {
-        event.preventDefault()
+        event.preventDefault();
+        if (selectedIds.length === 0) {
+          toast.warning('Please select at least one participant');
+          return;
+        }
         qiscus.addParticipantsToGroup(qiscus.selected.id, selectedIds)
           .then(function (users) {
             var participants = users.map(function (user) {
-              return ParticipantItem(user)
-            }).join('')
+              return ParticipantItem(user);
+            }).join('');
             $content.find('.participant-list')
-              .append(participants)
-            $content.find('.ContactChooser').slideUp()
-            selectedIds.splice(0, selectedIds.length)
+              .append(participants);
+            $content.find('.ContactChooser').slideUp();
+            selectedIds.splice(0, selectedIds.length);
+            toast.success(users.length + ' participant(s) added successfully');
           })
+          .catch(function (error) {
+            toast.error('Failed to add participants');
+            console.error('Error adding participants:', error);
+          });
       })
       .on('input.RoomInfo', '.RoomInfo #search', function (event) {
         var query = $(this).val();
