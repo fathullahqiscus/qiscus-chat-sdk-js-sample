@@ -742,7 +742,12 @@ define([
       })
       .on('click.Chat', '.Chat .room-meta', function (event) {
         event.preventDefault();
-        route.push('/room-info', { roomId: qiscus.selected.id });
+        // Pass complete room data to avoid API call
+        route.push('/room-info', {
+          roomId: qiscus.selected.id,
+          roomData: qiscus.selected  // Pass entire room object
+        });
+        console.log('✅ Using room data from state (no API call needed)', qiscus.selected);
       })
       .on(
         'keydown.Chat',

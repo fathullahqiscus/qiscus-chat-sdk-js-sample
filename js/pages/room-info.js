@@ -12,25 +12,34 @@ define([
   var isLoadingUser = false
 
   var loadContact = _.debounce(function (currentLength) {
-    if (isLoadingUser) return
+    if (isLoadingUser) return;
 
-    var query = searchQuery
-    var perPage = 20
-    var currentPage = Math.ceil(currentLength / perPage)
-    var nextPage = currentPage + 1
+    // Use participants from room instead of deprecated getUsers()
+    if (!qiscus.selected || !qiscus.selected.participants) {
+      isLoadingUser = false;
+      return;
+    }
 
-    isLoadingUser = true
-    qiscus.getUsers(query)
-      .then(function (data) {
-        isLoadingUser = false
-        var users = data.users.map(function (user) {
-          var selected = selectedIds.includes(user.email)
-          return ContactItem(user, selected)
-        }).join('')
+    isLoadingUser = true;
 
-        $(users).insertBefore('.contact-list .load-more')
-      })
-  }, 300)
+    // Filter participants by search query if provided
+    var participants = qiscus.selected.participants;
+    if (searchQuery) {
+      var lowerQuery = searchQuery.toLowerCase();
+      participants = participants.filter(function (user) {
+        return user.username.toLowerCase().includes(lowerQuery) ||
+          user.email.toLowerCase().includes(lowerQuery);
+      });
+    }
+
+    var users = participants.map(function (user) {
+      var selected = selectedIds.includes(user.email);
+      return ContactItem(user, selected);
+    }).join('');
+
+    $(users).insertBefore('.contact-list .load-more');
+    isLoadingUser = false;
+  }, 300);
 
   function ParticipantItem(user) {
     return `
@@ -105,15 +114,24 @@ define([
   }
 
   function ContactChooser() {
-    qiscus.getUsers()
-      .then(function (data) {
-        var users = data.users.map(function (user) {
-          return ContactItem(user)
-        }).join('')
-        // $content.find('.contact-list')
-        //   .html(users)
-        $(users).insertBefore('.ContactChooser .contact-list .load-more')
-      })
+    // Use participants from current room instead of deprecated getUsers()
+    // If we need all users, we should use a different approach
+    // For now, show participants from current room as available contacts
+    var users = '';
+
+    if (qiscus.selected && qiscus.selected.participants) {
+      users = qiscus.selected.participants.map(function (user) {
+        return ContactItem(user);
+      }).join('');
+    }
+
+    // Insert initial users
+    setTimeout(function () {
+      if (users) {
+        $(users).insertBefore('.ContactChooser .contact-list .load-more');
+      }
+    }, 100);
+
     return `
       <div class="ContactChooser" style="display:none;">
         <div class="toolbar">
@@ -169,44 +187,136 @@ define([
   }
 
   function mount(state) {
-    selectedIds.splice(0, selectedIds.length)
-    searchQuery = null
+    selectedIds.splice(0, selectedIds.length);
+    searchQuery = null;
     if (blobURL != null) {
-      URL.revokeObjectURL(blobURL)
-      blobURL = null
+      URL.revokeObjectURL(blobURL);
+      blobURL = null;
     }
-    qiscus.getRoomsInfo({ room_ids: [`${state.roomId}`] })
-      .then(function (resp) {
-        var info = resp.results.rooms_info.pop()
-        if (info.chat_type === 'single') {
-          var user = info.participants.find(function (user) {
-            return user.email !== qiscus.user_id
-          })
-          $content.find('.info-container')
-            .html(SingleRoomInfo(user))
-          $content.find('.toolbar-title')
-            .text(user.username)
-          $content.find('.profile-avatar')
-            .attr('src', info.avatar_url)
-          $content.find('#input-user-name')
-            .attr('value', user.username)
-          $content.find('#input-user-id')
-            .attr('value', user.email)
-        } else if (info.chat_type === 'group') {
-          $content.find('.info-container')
-            .html(GroupRoomInfo(info))
-          $content.find('#input-room-name')
-            .val(info.room_name)
-          $content.find('.profile-avatar')
-            .attr('src', info.avatar_url)
 
-          $content.find('.change-avatar-container')
-            .children()
-            .each(function () {
-              $(this).removeClass('hidden')
-            })
+    // Helper function to generate avatar placeholder
+    function getAvatarPlaceholder(name) {
+      var initial = name ? name.charAt(0).toUpperCase() : '?';
+      return "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E" + initial + "%3C/text%3E%3C/svg%3E";
+    }
+
+    // Helper function to render room info
+    function renderRoomInfo(info) {
+      console.log('🔍 renderRoomInfo called with:', info);
+
+      if (!info) {
+        console.error('❌ Room info is undefined');
+        $content.find('.info-container').html('<div>Room information not available</div>');
+        return;
+      }
+
+      console.log('🔍 Room type check:', {
+        chat_type: info.chat_type,
+        room_type: info.room_type,
+        participants_count: info.participants ? info.participants.length : 0
+      });
+
+      if (info.chat_type === 'single' || info.room_type === 'single') {
+        console.log('✅ Rendering single chat');
+        var user = info.participants.find(function (user) {
+          return user.email !== qiscus.user_id;
+        });
+
+        if (!user) {
+          console.error('❌ User not found in participants');
+          return;
         }
+
+        $content.find('.info-container')
+          .html(SingleRoomInfo(user));
+        $content.find('.toolbar-title')
+          .text(user.username);
+        var avatarUrl = info.avatar_url || user.avatar_url;
+        var placeholder = getAvatarPlaceholder(user.username);
+        $content.find('.profile-avatar')
+          .attr('src', avatarUrl)
+          .attr('onerror', "this.onerror=null; this.src='" + placeholder + "';");
+        $content.find('#input-user-name')
+          .attr('value', user.username);
+        $content.find('#input-user-id')
+          .attr('value', user.email);
+      } else if (info.chat_type === 'group' || info.room_type === 'group') {
+        console.log('✅ Rendering group chat with', info.participants.length, 'participants');
+        $content.find('.info-container')
+          .html(GroupRoomInfo(info));
+        $content.find('#input-room-name')
+          .val(info.room_name || info.name);
+        var placeholder = getAvatarPlaceholder(info.room_name || info.name);
+        $content.find('.profile-avatar')
+          .attr('src', info.avatar_url)
+          .attr('onerror', "this.onerror=null; this.src='" + placeholder + "';");
+
+        $content.find('.change-avatar-container')
+          .children()
+          .each(function () {
+            $(this).removeClass('hidden');
+          });
+      } else {
+        console.error('❌ Unknown room type:', info.chat_type, info.room_type);
+        $content.find('.info-container').html('<div>Unknown room type</div>');
+      }
+
+      console.log('✅ renderRoomInfo completed');
+    }
+
+    // Try to use qiscus.selected first (if available from previous page)
+    console.log('🔍 Checking qiscus.selected:', {
+      exists: !!qiscus.selected,
+      selectedId: qiscus.selected ? qiscus.selected.id : null,
+      selectedIdType: qiscus.selected ? typeof qiscus.selected.id : null,
+      hasParticipants: qiscus.selected ? !!qiscus.selected.participants : false,
+      participantsCount: qiscus.selected && qiscus.selected.participants ? qiscus.selected.participants.length : 0,
+      stateRoomId: state.roomId,
+      stateRoomIdType: typeof state.roomId
+    });
+
+    // Use qiscus.selected if available (most common case when navigating from chat)
+    if (qiscus.selected && qiscus.selected.participants) {
+      console.log('✅ Using qiscus.selected (no API call needed)', qiscus.selected);
+      renderRoomInfo(qiscus.selected);
+      return; // Early return, no API call needed
+    }
+
+    // Fallback to API call if qiscus.selected not available
+    // This happens when accessing room-info directly via URL or after page refresh
+    var roomId = state.roomId || (qiscus.selected && qiscus.selected.id);
+
+    if (!roomId) {
+      console.error('❌ No room ID available');
+      $content.find('.info-container').html('<div>Room ID not available</div>');
+      return;
+    }
+
+    console.log('⚠️ qiscus.selected not available, fetching from API for room:', roomId);
+    qiscus.getRoomsInfo({ room_ids: [`${roomId}`] })
+      .then(function (resp) {
+        // Check if response has valid data
+        if (!resp || !resp.results || !resp.results.rooms_info || resp.results.rooms_info.length === 0) {
+          console.error('No room info found');
+          $content.find('.info-container').html('<div>Room information not available</div>');
+          return;
+        }
+
+        var info = resp.results.rooms_info.pop();
+
+        // Additional null check for info object
+        if (!info) {
+          console.error('Room info is undefined');
+          $content.find('.info-container').html('<div>Room information not available</div>');
+          return;
+        }
+
+        renderRoomInfo(info);
       })
+      .catch(function (error) {
+        console.error('Error loading room info:', error);
+        $content.find('.info-container').html('<div>Error loading room information</div>');
+      });
   }
 
   function template(state) {
@@ -221,7 +331,7 @@ define([
         </div>
         <div class="avatar-container">
           <input id="input-avatar" type="file" accept="image/*" class="hidden">
-          <img class="profile-avatar" src="" alt="">
+          <img class="profile-avatar" src="" alt="" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27100%27 height=%27100%27%3E%3Crect fill=%27%23e5e7eb%27 width=%27100%27 height=%27100%27/%3E%3Ctext fill=%27%236b7280%27 font-family=%27Arial%27 font-size=%2740%27 text-anchor=%27middle%27 x=%2750%27 y=%2765%27%3E?%3C/text%3E%3C/svg%3E';">
           <div class="change-avatar-container">
             <input id="input-room-name" type="text" value="" disabled class="hidden">
             <button id="edit-room-name-btn" class="edit-name hidden" type="button">
@@ -333,21 +443,35 @@ define([
           })
       })
       .on('input.RoomInfo', '.RoomInfo #search', function (event) {
-        var query = $(this).val()
-        if (query.length === 0) searchQuery = null
-        else searchQuery = query
+        var query = $(this).val();
+        if (query.length === 0) searchQuery = null;
+        else searchQuery = query;
 
-        return qiscus.getUsers(searchQuery)
-          .then(function (resp) {
-            var users = resp.users.map(function (user) {
-              var selected = selectedIds.includes(user.email)
-              return ContactItem(user, selected)
-            }).join('')
-            $content.find('.contact-list')
-              .empty()
-              .append(users)
-              .append('<li class="load-more"><button>Load more</button></li>')
-          })
+        // Use participants from room instead of deprecated getUsers()
+        if (!qiscus.selected || !qiscus.selected.participants) {
+          return;
+        }
+
+        var participants = qiscus.selected.participants;
+
+        // Filter by search query
+        if (searchQuery) {
+          var lowerQuery = searchQuery.toLowerCase();
+          participants = participants.filter(function (user) {
+            return user.username.toLowerCase().includes(lowerQuery) ||
+              user.email.toLowerCase().includes(lowerQuery);
+          });
+        }
+
+        var users = participants.map(function (user) {
+          var selected = selectedIds.includes(user.email);
+          return ContactItem(user, selected);
+        }).join('');
+
+        $content.find('.contact-list')
+          .empty()
+          .append(users)
+          .append('<li class="load-more"><button>Load more</button></li>');
       })
       .on('click.RoomInfo', '.RoomInfo .load-more button', function (event) {
         event.preventDefault()
