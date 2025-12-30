@@ -27,6 +27,11 @@ define(
       // Attempt login
       qiscus.setUser(userId, userKey, username)
         .then(function (user) {
+          // Save app name to localStorage
+          if (user.user && user.user.app && user.user.app.name) {
+            localStorage.setItem('appName', user.user.app.name);
+          }
+
           toast.success('Welcome back, ' + (username || userId) + '!');
           // Button will be re-enabled by page navigation
         })

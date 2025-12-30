@@ -234,6 +234,12 @@ define([
         return '-';
       }
 
+      // Update App Name from localStorage
+      var appName = localStorage.getItem('appName');
+      if (appName) {
+        $('#app-name').text(appName);
+      }
+
       // Update config values
       if (qiscus.syncInterval !== undefined) {
         $('#sync-interval').text(qiscus.syncInterval + ' ms');
