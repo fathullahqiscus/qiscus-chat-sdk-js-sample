@@ -1,6 +1,6 @@
 define(
-  ['jquery', 'lodash', 'service/page', 'service/route', 'service/content', 'service/qiscus'],
-  function ($, _, createPage, route, $content, qiscus) {
+  ['jquery', 'lodash', 'service/page', 'service/route', 'service/content', 'service/qiscus', 'service/toast'],
+  function ($, _, createPage, route, $content, qiscus, toast) {
     var activeTab = 'single';
 
     function getFormConfig(tab) {
@@ -151,12 +151,17 @@ define(
     function startChat($root) {
       if (activeTab === 'single') {
         var userId = $.trim($root.find('#user-id').val());
-        return qiscus.chatTarget(userId).then(function (room) {
-          route.push('/chat-room', {
-            roomName: room.name,
-            roomAvatar: room.avatar,
+        return qiscus.chatTarget(userId)
+          .then(function (room) {
+            route.push('/chat-room', {
+              roomName: room.name,
+              roomAvatar: room.avatar,
+            });
+          })
+          .catch(function (error) {
+            console.error('Error starting chat:', error);
+            toast.error('Unable to start chat. Please check if the user ID exists');
           });
-        });
       } else if (activeTab === 'group') {
         var groupName = $.trim($root.find('#group-name').val());
         var userIds = $.trim($root.find('#user-ids').val()).split(',').map(function (id) {
@@ -171,44 +176,54 @@ define(
           options.avatar_url = avatarUrl;
         }
 
-        return qiscus.createGroupRoom(groupName, userIds, options).then(function (room) {
-          route.push('/chat-room', {
-            roomName: room.name,
-            roomAvatar: room.avatar_url || room.avatar,
+        return qiscus.createGroupRoom(groupName, userIds, options)
+          .then(function (room) {
+            route.push('/chat-room', {
+              roomName: room.name,
+              roomAvatar: room.avatar_url || room.avatar,
+            });
+          })
+          .catch(function (error) {
+            console.error('Error creating group:', error);
+            toast.error('Unable to create group. Please check if all user IDs exist');
           });
-        });
       } else if (activeTab === 'channel') {
         var channelId = $.trim($root.find('#channel-id').val());
         var channelName = $.trim($root.find('#channel-name').val());
         var avatarUrl = $.trim($root.find('#avatar-url').val());
 
         // First, get or create the room with unique ID
-        return qiscus.getOrCreateRoomWithUniqueId(channelId).then(function (room) {
-          // If channel name or avatar is provided, update the room
-          if (channelName || avatarUrl) {
-            var updateOptions = {
-              id: room.id
-            };
-            if (channelName) {
-              updateOptions.room_name = channelName;
-            }
-            if (avatarUrl) {
-              updateOptions.avatar_url = avatarUrl;
-            }
+        return qiscus.getOrCreateRoomByChannel(channelId, channelName, avatarUrl)
+          .then(function (room) {
+            // If channel name or avatar is provided, update the room
+            if (channelName || avatarUrl) {
+              var updateOptions = {
+                id: room.id
+              };
+              if (channelName) {
+                updateOptions.room_name = channelName;
+              }
+              if (avatarUrl) {
+                updateOptions.avatar_url = avatarUrl;
+              }
 
-            return qiscus.updateRoom(updateOptions).then(function (updatedRoom) {
-              route.push('/chat-room', {
-                roomName: updatedRoom.name || room.name,
-                roomAvatar: updatedRoom.avatar_url || room.avatar_url || room.avatar,
+              return qiscus.updateRoom(updateOptions).then(function (updatedRoom) {
+                route.push('/chat-room', {
+                  roomName: updatedRoom.name || room.name,
+                  roomAvatar: updatedRoom.avatar_url || room.avatar_url || room.avatar,
+                });
               });
-            });
-          } else {
-            route.push('/chat-room', {
-              roomName: room.name,
-              roomAvatar: room.avatar_url || room.avatar,
-            });
-          }
-        });
+            } else {
+              route.push('/chat-room', {
+                roomName: room.name,
+                roomAvatar: room.avatar_url || room.avatar,
+              });
+            }
+          })
+          .catch(function (error) {
+            console.error('Error creating channel:', error);
+            toast.error('Unable to create channel. Please try again');
+          });
       }
     }
 
