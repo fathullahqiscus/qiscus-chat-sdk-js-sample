@@ -124,51 +124,25 @@ define([
   }
 
   function ContactChooser() {
-    // Use participants from current room instead of deprecated getUsers()
-    // If we need all users, we should use a different approach
-    // For now, show participants from current room as available contacts
-    var users = '';
-
-    if (qiscus.selected && qiscus.selected.participants) {
-      users = qiscus.selected.participants.map(function (user) {
-        return ContactItem(user);
-      }).join('');
-    }
-
-    // Insert initial users
-    setTimeout(function () {
-      if (users) {
-        $(users).insertBefore('.ContactChooser .contact-list .load-more');
-      }
-    }, 100);
-
     return `
       <div class="ContactChooser" style="display:none;">
-        <div class="toolbar">
-          <button type="button" id="close-contact-chooser" class="toolbar-btn">
-            <i class="icon icon-arrow-left-green"></i>
-          </button>
-          <h3 class="toolbar-title">Create New Chat</h3>
-          <button type="button" id="add-participant-btn" class="toolbar-btn">
-            <i class="icon icon-arrow-right-green"></i>
-          </button>
-        </div>
-        <div class="search-container">
-          <i class="icon icon-search"></i>
-          <input type="text" class="search-input" id="search" placeholder="Search">
-        </div>
-        <div class="contact-list-container">
-          <div class="contact-list-header">
-            Contacts
+        <div class="modal-overlay"></div>
+        <div class="modal-content-simple">
+          <h3 class="modal-title">Add Participants</h3>
+          <p class="modal-description">Enter user IDs or emails (comma-separated for multiple users)</p>
+          <textarea 
+            id="participant-input" 
+            class="participant-input" 
+            placeholder="e.g. user1@example.com, user2@example.com"
+            rows="4"
+          ></textarea>
+          <div class="modal-actions">
+            <button type="button" id="cancel-add-participant" class="btn-cancel">Cancel</button>
+            <button type="button" id="confirm-add-participant" class="btn-add">Add</button>
           </div>
-          <ul class="contact-list">
-            <li class="load-more">
-              <button type="button">Load more</button>
-            </li>
-          </ul>
         </div>
       </div>
-    `
+    `;
   }
 
   function removeParticipant(contactId) {
@@ -363,8 +337,8 @@ define([
     $content
       .off('.RoomInfo')
       .on('click.RoomInfo', '.RoomInfo #open-contact-chooser-btn', function (event) {
-        event.preventDefault()
-        $content.find('.ContactChooser').slideDown()
+        event.preventDefault();
+        $content.find('.ContactChooser').fadeIn(200);
       })
       .on('click.RoomInfo', '.RoomInfo #back-btn', function (event) {
         event.preventDefault()
@@ -444,49 +418,54 @@ define([
             console.error('Error removing participant:', error);
           });
       })
-      .on('click.RoomInfo', '.RoomInfo #close-contact-chooser', function () {
-        $content.find('.ContactChooser').slideUp()
+      .on('click.RoomInfo', '.RoomInfo #cancel-add-participant', function () {
+        $content.find('.ContactChooser').fadeOut(200);
+        $content.find('#participant-input').val(''); // Clear input
       })
-      .on('click.RoomInfo', '.RoomInfo .contact-item button', function (event) {
-        event.preventDefault()
-        var $el = $(this).closest('li.contact-item')
-        var isSelected = $el.attr('data-selected')
-        var contactId = $el.attr('data-contact-id')
-        var contactName = $el.attr('data-contact-name')
-        var contactAvatar = $el.attr('data-contact-avatar')
-        var contactEmail = $el.attr('data-contact-userid')
-
-        if (isSelected) {
-          removeParticipant(contactId)
-        } else {
-          addParticipant({
-            id: contactId,
-            name: contactName,
-            avatar: contactAvatar,
-            email: contactEmail
-          })
-        }
+      .on('click.RoomInfo', '.RoomInfo .modal-overlay', function () {
+        $content.find('.ContactChooser').fadeOut(200);
+        $content.find('#participant-input').val(''); // Clear input
       })
-      .on('click.RoomInfo', '.RoomInfo #add-participant-btn', function (event) {
+      .on('click.RoomInfo', '.RoomInfo #confirm-add-participant', function (event) {
         event.preventDefault();
-        if (selectedIds.length === 0) {
-          toast.warning('Please select at least one participant');
+
+        var input = $content.find('#participant-input').val().trim();
+        if (!input) {
+          toast.warning('Please enter at least one user ID or email');
           return;
         }
-        qiscus.addParticipantsToGroup(qiscus.selected.id, selectedIds)
+
+        // Split by comma and trim each
+        var userIds = input.split(',').map(function (id) {
+          return id.trim();
+        }).filter(function (id) {
+          return id.length > 0;
+        });
+
+        if (userIds.length === 0) {
+          toast.warning('Please enter valid user IDs or emails');
+          return;
+        }
+
+        qiscus.addParticipantsToGroup(qiscus.selected.id, userIds)
           .then(function (users) {
             var participants = users.map(function (user) {
               return ParticipantItem(user);
             }).join('');
-            $content.find('.participant-list')
-              .append(participants);
-            $content.find('.ContactChooser').slideUp();
-            selectedIds.splice(0, selectedIds.length);
+            $content.find('.participant-list').append(participants);
+
+            // Close modal
+            $content.find('.ContactChooser').fadeOut(200);
+
+            // Clear input
+            $content.find('#participant-input').val('');
+
             toast.success(users.length + ' participant(s) added successfully');
           })
           .catch(function (error) {
-            toast.error('Failed to add participants');
-            console.error('Error adding participants:', error);
+            var errorMessage = 'Unable to add participants. Please check the user IDs/emails is exist or not';
+            toast.error(errorMessage);
+            console.error(errorMessage);
           });
       })
       .on('input.RoomInfo', '.RoomInfo #search', function (event) {
