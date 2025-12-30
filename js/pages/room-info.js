@@ -42,10 +42,14 @@ define([
   }, 300);
 
   function ParticipantItem(user) {
+    var initial = user.username ? user.username.charAt(0).toUpperCase() : '?';
+    var placeholder = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E" + initial + "%3C/text%3E%3C/svg%3E";
+
     return `
       <li class="participant-item"
         data-user-id="${user.email}">
-        <img src="${user.avatar_url}">
+        <img src="${user.avatar_url}" 
+             onerror="this.onerror=null; this.src='${placeholder}';">
         <div class="name">${user.username}</div>
         <button id="remove-participant-btn"
           class="remove-participant-btn"
@@ -54,10 +58,13 @@ define([
           <i class="icon icon-cross-red"></i>
         </button>
       </li>
-    `
+    `;
   }
   function ContactItem(contact, selected) {
-    var selected = selected || false
+    var selected = selected || false;
+    var initial = contact.name ? contact.name.charAt(0).toUpperCase() : '?';
+    var placeholder = "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E" + initial + "%3C/text%3E%3C/svg%3E";
+
     return `
       <li class="contact-item"
         data-contact-id="${contact.id}"
@@ -66,7 +73,10 @@ define([
         data-contact-userid="${contact.email}"
         ${selected ? `data-selected="${selected}"` : ''}>
         <div class="avatar-container">
-          <img class="contact-avatar" src="${contact.avatar_url}" alt="${contact.email}">
+          <img class="contact-avatar" 
+               src="${contact.avatar_url}" 
+               alt="${contact.email}"
+               onerror="this.onerror=null; this.src='${placeholder}';">
         </div>
         <button type="button">
           <div class="displayname-container">
@@ -75,7 +85,7 @@ define([
           <i class="icon icon-check-green ${selected ? '' : 'hidden'}"></i>
         </button>
       </li>
-    `
+    `;
   }
   function SingleRoomInfo(user) {
     return `
