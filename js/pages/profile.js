@@ -104,9 +104,36 @@ define([
       })
       .on('click.Profile', '.Profile #logout-btn', function (event) {
         event.preventDefault();
-        qiscus.logout();
-        localStorage.clear();
-        route.push('/login');
+
+        // Show confirmation dialog
+        if (confirm('Are you sure you want to logout?')) {
+          console.log('🔴 Logging out... isLogin before:', qiscus.isLogin);
+
+          // Manually clear authentication state
+          qiscus.isLogin = false;
+          qiscus.userData = {};
+
+          // Clear localStorage
+          localStorage.removeItem('authdata');
+
+          try {
+            // Disconnect from Qiscus
+            qiscus.disconnect();
+          } catch (error) {
+            // Ignore disconnect errors - they're expected when terminating connections
+            console.log('Disconnect error (expected):', error.message);
+          }
+
+          console.log('🔴 Logged out. isLogin after:', qiscus.isLogin);
+
+          // Show success toast
+          toast.success('Logged out successfully');
+
+          // Redirect to login after clearing state
+          setTimeout(function () {
+            route.push('/login');
+          }, 200);
+        }
       });
   }
 
