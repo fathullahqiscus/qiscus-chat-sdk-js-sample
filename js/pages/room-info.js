@@ -248,7 +248,7 @@ define([
           .val(info.room_name || info.name);
         var placeholder = getAvatarPlaceholder(info.room_name || info.name);
         $content.find('.profile-avatar')
-          .attr('src', info.avatar_url)
+          .attr('src', info.avatar)
           .attr('onerror', "this.onerror=null; this.src='" + placeholder + "';");
 
         $content.find('.change-avatar-container')
