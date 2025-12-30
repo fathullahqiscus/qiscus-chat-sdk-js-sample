@@ -181,6 +181,13 @@ define([
   var initialPath = qiscus.isLogin ? '/chat' : '/login';
   route.replace(initialPath);
 
+  // Hide FAB if widget is visible (e.g., user is logged in)
+  setTimeout(function () {
+    if ($('.widget-container').is(':visible')) {
+      $('.toggle-widget-btn').hide();
+    }
+  }, 100);
+
   // Update SDK Status Display
   function updateSDKStatus() {
     if (qiscus.isLogin && qiscus.userData) {
