@@ -345,7 +345,7 @@ define([
         console.error('Error loading comments:', error);
         // Show user-friendly error message for rate limiting
         if (error.message && error.message.includes('429')) {
-          alert('Too many requests. Please wait a moment before loading more.');
+          toast.warning('Too many requests. Please wait a moment before loading more.', 4000);
         }
         $content.find('.load-more').addClass('hidden');
       })

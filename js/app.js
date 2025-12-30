@@ -4,6 +4,7 @@ define([
   'service/route',
   'service/emitter',
   'service/content',
+  'service/toast',
   'pages/login',
   'pages/chat-list',
   'pages/chat',
@@ -17,6 +18,7 @@ define([
   route,
   emitter,
   $content,
+  toast,
   LoginPage,
   ChatListPage,
   ChatPage,
@@ -27,6 +29,7 @@ define([
 ) {
   window.route = route;
   window.qiscus = qiscus;
+  window.toast = toast; // Expose toast globally
 
   // Handle unhandled promise rejections (e.g., from disconnect during logout)
   window.addEventListener('unhandledrejection', function (event) {
@@ -144,7 +147,7 @@ define([
     var appId = $('#app-id-input').val().trim();
 
     if (!appId) {
-      alert('Please enter an App ID');
+      toast.warning('Please enter an App ID');
       return;
     }
 
@@ -164,6 +167,7 @@ define([
     $('.toggle-widget-btn').show();
 
     console.log('✅ Qiscus initialized successfully!');
+    toast.success('Qiscus SDK initialized successfully!');
   });
 
   // Allow Enter key to submit form
