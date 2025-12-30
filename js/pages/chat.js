@@ -13,6 +13,7 @@ define([
   var attachmentPreviewURL = null;
   var typingTimeoutId = -1;
   var lastTypingValue = null;
+  var isLoadingComments = false; // Prevent spam clicking Load more
 
   function Toolbar(name, avatar) {
     var selected = qiscus.selected || { participants: [], room_type: 'single' };
@@ -38,11 +39,10 @@ define([
         <img class="avatar" src="${avatar || '/img/img-default-avatar-picker.svg'}">
         <button class="room-meta">
           <div class="room-name">${name || 'Chat Room'}</div>
-          ${
-            isGroup
-              ? `<small class="online-status participant-list">${participants}</small>`
-              : `<small class="online-status">Last Online Few Moments Ago</small>`
-          }
+          ${isGroup
+        ? `<small class="online-status participant-list">${participants}</small>`
+        : `<small class="online-status">Last Online Few Moments Ago</small>`
+      }
         </button>
       </div>
     `;
@@ -175,25 +175,22 @@ define([
       content = `
         <a href="${fileURL}" target="_blank"
           style="${caption ? 'height:80%' : ''}">
-          ${
-            !isImage
-              ? `<div class="comment-file">
+          ${!isImage
+          ? `<div class="comment-file">
               <i class="icon icon-attachment-file"></i><div class="filename">${filename}</div>
             </div>`
-              : ''
-          }
-          ${
-            isImage
-              ? `<img class="image-preview" src="${thumbnailURL}" alt="preview">`
-              : ''
-          }
+          : ''
+        }
+          ${isImage
+          ? `<img class="image-preview" src="${thumbnailURL}" alt="preview">`
+          : ''
+        }
         </a>
-        ${
-          isImage
-            ? `<div class="image-caption ${caption ? '' : 'hidden'}">
+        ${isImage
+          ? `<div class="image-caption ${caption ? '' : 'hidden'}">
             ${caption}
           </div>`
-            : ''
+          : ''
         }
       `;
     }
@@ -225,9 +222,8 @@ define([
             </div>
             <i class="icon icon-message-${comment.status}"></i>
           </div>
-          ${
-            isMe
-              ? `<div class="message-deleter">
+          ${isMe
+        ? `<div class="message-deleter">
             <button type="button" data-action="delete" data-comment-id="${comment.unique_temp_id}">
               Delete
             </button>
@@ -235,14 +231,14 @@ define([
               Reply
             </button>
           </div>`
-              : `
+        : `
               <div class="message-deleter">
             <button type="button" data-action="reply" data-comment-id="${comment.id}">
               Reply
             </button>
               </div>
               `
-          }
+      }
         </li>
       `;
   }
@@ -307,11 +303,33 @@ define([
   }
 
   function loadComment(lastCommentId) {
+    // Prevent spam clicking
+    if (isLoadingComments) {
+      console.log('Already loading comments, please wait...');
+      return Promise.resolve();
+    }
+
+    isLoadingComments = true;
+    var $loadMoreBtn = $content.find('.load-more-btn');
+    var originalText = $loadMoreBtn.text();
+
+    // Disable button and show loading state
+    $loadMoreBtn
+      .prop('disabled', true)
+      .text('Loading...')
+      .css('opacity', '0.6');
+
     return qiscus
       .loadComments(qiscus.selected.id, {
         last_comment_id: lastCommentId,
       })
       .then(function (data) {
+        // Check if data is empty
+        if (!data || data.length === 0) {
+          $content.find('.load-more').addClass('hidden');
+          return;
+        }
+
         var comments = commentListFormatter(data);
         var $comments = $(comments.map(CommentItem).join(''));
         $comments.insertAfter('.load-more');
@@ -320,6 +338,22 @@ define([
         if (lastCommentId === 0) {
           $content.find('.load-more').addClass('hidden');
         }
+      })
+      .catch(function (error) {
+        console.error('Error loading comments:', error);
+        // Show user-friendly error message for rate limiting
+        if (error.message && error.message.includes('429')) {
+          alert('Too many requests. Please wait a moment before loading more.');
+        }
+        $content.find('.load-more').addClass('hidden');
+      })
+      .finally(function () {
+        // Re-enable button and restore state
+        isLoadingComments = false;
+        $loadMoreBtn
+          .prop('disabled', false)
+          .text(originalText)
+          .css('opacity', '1');
       });
   }
 
@@ -475,10 +509,10 @@ define([
     });
     var comment = isReply
       ? qiscus.generateReplyMessage({
-          roomId: qiscus.selected.id,
-          text: message,
-          repliedMessage: replyComment,
-        })
+        roomId: qiscus.selected.id,
+        text: message,
+        repliedMessage: replyComment,
+      })
       : qiscus.generateMessage({ roomId: qiscus.selected.id, text: message });
 
     var commentId = comment.id;
