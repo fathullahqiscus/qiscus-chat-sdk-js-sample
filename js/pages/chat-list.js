@@ -84,7 +84,7 @@ define([
         data-room-id="${room.id}"
         data-room-name="${room.name}"
         data-room-avatar="${room.avatar}">
-        <img class="room-avatar" src="${room.avatar}">
+        <img class="room-avatar" src="${room.avatar}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E${room.name.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E';">
         <div class="room-data-container">
           <div class="room-content">
             <div class="room-name">${room.name}</div>

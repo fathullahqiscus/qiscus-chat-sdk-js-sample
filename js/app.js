@@ -248,4 +248,24 @@ define([
 
   // Initial update
   setTimeout(updateSDKStatus, 500);
+
+  // Global Avatar Error Handler
+  // Handle all avatar image load errors and replace with placeholder
+  $(document).on('error', 'img.room-avatar, img.avatar, img.contact-avatar, img.participant-avatar, img.profile-avatar', function () {
+    var $img = $(this);
+    if ($img.attr('data-error-handled')) return; // Prevent infinite loop
+
+    $img.attr('data-error-handled', 'true');
+
+    // Try to get name from nearby elements or alt attribute
+    var name = $img.attr('alt') ||
+      $img.closest('.room-item').find('.room-name').text() ||
+      $img.closest('.contact-item').find('.contact-name').text() ||
+      'U';
+
+    var initial = name.charAt(0).toUpperCase();
+    var placeholder = `data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E${initial}%3C/text%3E%3C/svg%3E`;
+
+    $img.attr('src', placeholder);
+  });
 });
