@@ -36,7 +36,9 @@ define([
         <button type="button" class="btn-icon" id="chat-toolbar-btn">
           <i class="icon icon-arrow-back"></i>
         </button>
-        <img class="avatar" src="${avatar || '/img/img-default-avatar-picker.svg'}">
+        <img class="avatar" 
+             src="${avatar || '/img/img-default-avatar-picker.svg'}" 
+             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E${(name || 'C').charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E';">
         <button class="room-meta">
           <div class="room-name">${name || 'Chat Room'}</div>
           ${isGroup
