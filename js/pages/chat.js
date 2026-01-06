@@ -12,6 +12,7 @@ define([
   var isAbleToScroll = false;
   var attachmentPreviewURL = null;
   var typingTimeoutId = -1;
+  var userTypingTimeoutId = -1; // Track user's own typing timeout
   var lastTypingValue = null;
   var isLoadingComments = false; // Prevent spam clicking Load more
 
@@ -541,6 +542,13 @@ define([
     }
     $content.find('#message-form input[name="message"]').val('');
 
+    // Stop typing indicator immediately when message is sent
+    if (userTypingTimeoutId !== -1) {
+      clearTimeout(userTypingTimeoutId);
+      userTypingTimeoutId = -1;
+    }
+    qiscus.publishTyping(0);
+
     qiscus
       .sendComment(
         qiscus.selected.id,
@@ -758,7 +766,19 @@ define([
         'keydown.Chat',
         '.Chat input#message',
         _.throttle(function () {
+          // Publish typing start
           qiscus.publishTyping(1);
+
+          // Clear previous timeout if exists
+          if (userTypingTimeoutId !== -1) {
+            clearTimeout(userTypingTimeoutId);
+          }
+
+          // Set timeout to stop typing after 1 second of inactivity
+          userTypingTimeoutId = setTimeout(function () {
+            qiscus.publishTyping(0);
+            userTypingTimeoutId = -1;
+          }, 1000);
         }, 300)
       )
       .on(
