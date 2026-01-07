@@ -163,13 +163,12 @@ define([
         newMessageIds.length = 0;
         var target = $(event.currentTarget);
         var roomId = target.data('room-id');
-        var roomName = target.data('room-name');
-        var roomAvatar = target.data('room-avatar');
-        qiscus.getRoomById(roomId).then(function () {
+        qiscus.getRoomById(roomId).then(function (data) {
+          console.log("room data", data);
           route.push('/chat-room', {
-            roomId: roomId,
-            roomName: roomName,
-            roomAvatar: roomAvatar,
+            roomId: data.id,
+            roomName: data.name,
+            roomAvatar: data.avatar,
           });
         });
       })
