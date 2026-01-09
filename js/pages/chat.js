@@ -99,12 +99,15 @@ define([
     if (type === 'reply') {
       content = `
         <div class="replied-message-container">
-        ${comment.payload.replied_comment_message}
+        ${linkifyText(comment.payload.replied_comment_message)}
         </div>
         <div class="replied-original-message">
-        ${comment.message}
+        ${linkifyText(comment.message)}
         </div>
       `;
+    } else if (type === 'text' || !type) {
+      // Apply linkify to regular text messages
+      content = linkifyText(content);
     }
 
     if (type === 'upload') {
@@ -249,6 +252,16 @@ define([
       }
         </li>
       `;
+  }
+
+  function linkifyText(text) {
+    // Regex to detect URLs
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+
+    // Replace URLs with clickable links
+    return text.replace(urlRegex, function (url) {
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="message-link">' + url + '</a>';
+    });
   }
 
   function getAttachmentURL(fileURL) {

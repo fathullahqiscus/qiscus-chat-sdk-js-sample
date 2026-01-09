@@ -276,6 +276,34 @@
   max-width: 200px;
   overflow: hidden;
   min-width: 80px;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Styling for clickable links in messages */
+.Chat .comment-list-container .message-container .message-link {
+  color: #0ea371;
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.Chat .comment-list-container .message-container .message-link:hover {
+  color: #0c8a60;
+  text-decoration: underline;
+}
+
+/* White links for sent messages (green bubble) */
+.Chat .comment-list-container .comment-item.me .message-container .message-link {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.Chat .comment-list-container .comment-item.me .message-container .message-link:hover {
+  color: #e0f2fe;
+  text-decoration: underline;
 }
 
 .Chat .comment-list-container .message-container.date {
@@ -991,6 +1019,34 @@
   max-width: 75%;
   min-width: 120px;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Styling for clickable links in messages (responsive) */
+.Chat .comment-list-container .message-container .message-link {
+  color: #0ea371;
+  text-decoration: underline;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.Chat .comment-list-container .message-container .message-link:hover {
+  color: #0c8a60;
+  text-decoration: underline;
+}
+
+/* White links for sent messages (green bubble) - responsive */
+.Chat .comment-list-container .comment-item.me .message-container .message-link {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.Chat .comment-list-container .comment-item.me .message-container .message-link:hover {
+  color: #e0f2fe;
+  text-decoration: underline;
 }
 
 .Chat .comment-list-container .message-container.date {
