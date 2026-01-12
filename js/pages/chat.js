@@ -7,7 +7,8 @@ define([
   'service/route',
   'service/qiscus',
   'service/emitter',
-], function (dateFns, $, _, createPage, $content, route, qiscus, emitter) {
+  'service/toast',
+], function (dateFns, $, _, createPage, $content, route, qiscus, emitter, toast) {
   window.$ = $;
   var isAbleToScroll = false;
   var attachmentPreviewURL = null;
@@ -51,6 +52,9 @@ define([
         ? `<small class="online-status participant-list">${participants}</small>`
         : `<small class="online-status">Last Online Few Moments Ago</small>`
       }
+        </button>
+        <button type="button" class="btn-icon btn-clear-messages" id="clear-messages-btn" title="Clear all messages">
+          <i class="icon icon-trash"></i>
         </button>
       </div>
     `;
@@ -730,6 +734,42 @@ define([
 
     $widget
       .on('click.Chat', '.Chat #chat-toolbar-btn', handleBack)
+      .on('click.Chat', '.Chat #clear-messages-btn', function (event) {
+        event.preventDefault();
+        if (!qiscus.selected) {
+          toast.error('No room selected');
+          return;
+        }
+
+        var roomName = qiscus.selected.name || 'this chat';
+        var confirmMessage = 'Are you sure you want to clear all messages in "' + roomName + '"? This action cannot be undone.';
+
+        if (!confirm(confirmMessage)) {
+          return;
+        }
+
+        var roomUniqueId = qiscus.selected.unique_id;
+        var $btn = $(this);
+
+        // Disable button and show loading state
+        $btn.prop('disabled', true).css('opacity', '0.5');
+
+        qiscus.clearRoomMessages([roomUniqueId])
+          .then(function (rooms) {
+            // Clear the comment list UI
+            $content.find('.comment-list-container').html(Empty());
+            toast.success('All messages have been cleared');
+            console.log('✅ Room messages cleared:', rooms);
+          })
+          .catch(function (error) {
+            console.error('Failed to clear room messages:', error);
+            toast.error('Failed to clear messages: ' + (error.message || 'Unknown error'));
+          })
+          .finally(function () {
+            // Re-enable button
+            $btn.prop('disabled', false).css('opacity', '1');
+          });
+      })
       .on('submit.Chat', '.Chat #message-form', handleMessageSubmit)
       .on('click.Chat', '.Chat #attachment-cancel', closeAttachment)
       .on('click.Chat', '.Chat #attachment-btn', openAttachment)
