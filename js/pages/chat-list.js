@@ -2,35 +2,37 @@ define([
   'jquery',
   'dateFns',
   'lodash',
+  'service/page',
   'service/qiscus',
   'service/content',
   'service/route',
-  'service/emitter'
-], function($, dateFns, _, qiscus, $content, route, emitter) {
-  var newMessageIds = []
+  'service/emitter',
+], function ($, dateFns, _, createPage, qiscus, $content, route, emitter) {
+  var newMessageIds = [];
 
   function searchAndReplace(str, find, replace) {
-    return str.split(find).join(replace)
+    return str.split(find).join(replace);
   }
   function escapeHTML(text) {
-    let comment
-    comment = searchAndReplace(text, '<p>', '')
-    comment = searchAndReplace(comment, '</p>', '')
-    return comment
+    var comment = searchAndReplace(text, '<p>', '');
+    comment = searchAndReplace(comment, '</p>', '');
+    return comment;
   }
 
   function Toolbar() {
     return `
       <div class="Toolbar">
-        <button id="profile-btn" type="button" class="avatar-btn">
-          <img src="${qiscus.userData.avatar_url}">
-        </button>
-        <div class="toolbar-title">Conversations</div>
-        <button type="button" class="chat-btn">
-          <i class="icon icon-new-chat"></i>
-        </button>
+        <div class="toolbar-meta">
+          <div class="eyebrow">Inbox</div>
+          <div class="toolbar-title">Conversations</div>
+        </div>
+        <div class="toolbar-actions">
+          <button id="profile-btn" type="button" class="avatar-btn">
+            <img src="${qiscus.userData.avatar_url}">
+          </button>
+        </div>
       </div>
-    `
+    `;
   }
 
   function Empty() {
@@ -38,102 +40,61 @@ define([
       <div class="ChatList">
         ${Toolbar()}
         <div class="empty-content-container">
-          <img src="/img/img-empty-chat.svg" class="empty-logo">
-          <div class="empty-title">Oops!!</div>
-          <p class="empty-description">
-            You don't have any conversation. <br>
-            Lets send a message to your contact
-          </p>
-          <button type="button" class="start-chat">
-            Start Chat
-          </button>
+          <div class="empty-card">
+            <div class="empty-visual">
+              <img src="/img/img-empty-chat.svg" class="empty-logo">
+            </div>
+            <div class="empty-title">No conversations yet</div>
+            <p class="empty-description">
+              Start a chat to see conversations appear here.
+            </p>
+            <div class="empty-actions">
+              <button type="button" class="start-chat primary-btn pill">
+                Start chat
+              </button>
+            </div>
+          </div>
         </div>
+        <button type="button" class="fab-new-chat" title="New Chat">
+          <i class="icon icon-new-chat"></i>
+        </button>
       </div>
-    `
+    `;
   }
 
   function getTime(lastMessageTime) {
     if (dateFns.isSameDay(lastMessageTime, new Date())) {
-      return dateFns.format(lastMessageTime, 'HH:mm')
+      return dateFns.format(lastMessageTime, 'HH:mm');
     } else {
-      return dateFns.format(lastMessageTime, 'DD/MM/YYYY')
+      return dateFns.format(lastMessageTime, 'DD/MM/YYYY');
     }
   }
 
   function roomFormatter(room) {
     var lastComment = room.last_comment_message.startsWith('[file]')
       ? 'File attachment'
-      : room.last_comment_message
+      : room.last_comment_message;
     var unreadCountClass =
-      room.count_notif > 0 ? 'room-unread-count' : 'room-unread-count hidden'
+      room.count_notif > 0 ? 'room-unread-count' : 'room-unread-count hidden';
     return `
       <li class="room-item"
         data-room-id="${room.id}"
         data-room-name="${room.name}"
         data-room-avatar="${room.avatar}">
-        <img class="room-avatar" src="${room.avatar}">
+        <img class="room-avatar" src="${room.avatar}" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23e5e7eb%22 width=%22100%22 height=%22100%22/%3E%3Ctext fill=%22%236b7280%22 font-family=%22Arial%22 font-size=%2240%22 text-anchor=%22middle%22 x=%2250%22 y=%2265%22%3E${room.name.charAt(0).toUpperCase()}%3C/text%3E%3C/svg%3E';">
         <div class="room-data-container">
           <div class="room-content">
             <div class="room-name">${room.name}</div>
             <div class="room-last-message">${lastComment}</div>
           </div>
           <div class="room-meta">
-            <div class="room-time">${getTime(
-              room.last_comment_message_created_at
-            )}</div>
+            <div class="room-time">${getTime(room.last_comment_message_created_at)}</div>
             <div class="${unreadCountClass}">${room.count_notif}</div>
           </div>
-
         </div>
       </li>
-    `
+    `;
   }
-
-  $content
-    .on('click', '.ChatList .room-item', function(event) {
-      event.preventDefault()
-      newMessageIds.length = 0
-      var target = $(event.currentTarget)
-      var roomId = target.data('room-id')
-      var roomName = target.data('room-name')
-      var roomAvatar = target.data('room-avatar')
-      qiscus.getRoomById(roomId).then(function(data) {
-        route.push('/chat-room', {
-          roomId: roomId,
-          roomName: roomName,
-          roomAvatar: roomAvatar
-        })
-      })
-    })
-    .on('click', '.ChatList .chat-btn', function(event) {
-      event.preventDefault()
-      route.push('/users')
-    })
-    .on('click', '.ChatList .start-chat', function(event) {
-      event.preventDefault()
-      route.push('/users')
-    })
-    .on('click', '.ChatList #profile-btn', function(event) {
-      route.push('/profile')
-    })
-    .on('click', '.ChatList .load-more button', function(event) {
-      event.preventDefault()
-      var childLength = $content.find('.room-list').children().length - 1 // minus load-more button
-      loadRooms(childLength)
-    })
-
-  emitter.on('qiscus::new-message', function(comment) {
-    if (newMessageIds.includes(comment.id)) return
-    newMessageIds.push(comment.id)
-
-    var roomId = comment.room_id
-    var $room = $content.find(`.room-item[data-room-id="${roomId}"]`)
-    $room.find('.room-last-message').text(escapeHTML(comment.message))
-    var $unreadCount = $room.find('.room-unread-count')
-    var lastUnreadCount = Number($unreadCount.text())
-    $unreadCount.removeClass('hidden').text(lastUnreadCount + 1)
-    $content.find('.ChatList .room-list').prepend($room.detach())
-  })
 
   function RoomList(rooms) {
     return `
@@ -147,45 +108,102 @@ define([
             </button>
           </li>
         </ul>
+        <button type="button" class="fab-new-chat" title="New Chat">
+          <i class="icon icon-new-chat"></i>
+        </button>
       </div>
-    `
+    `;
   }
 
-  var isLoadingRooms = false
-  var isAbleToLoadRoom = true
+  var isLoadingRooms = false;
+  var isAbleToLoadRoom = true;
   var loadRooms = _.debounce(function loadRooms(currentLength) {
-    if (isLoadingRooms || !isAbleToLoadRoom) return
+    if (isLoadingRooms || !isAbleToLoadRoom) return;
 
-    var perPage = 10
-    var currentPage = Math.ceil(currentLength / perPage)
-    var nextPage = currentPage + 1
+    var perPage = 10;
+    var currentPage = Math.ceil(currentLength / perPage);
+    var nextPage = currentPage + 1;
 
-    isLoadingRooms = true
+    isLoadingRooms = true;
     return qiscus
       .loadRoomList({
         page: nextPage,
-        limit: perPage
+        limit: perPage,
       })
-      .then(function(roomData) {
-        isLoadingRooms = false
+      .then(function (roomData) {
+        isLoadingRooms = false;
         if (roomData.length < perPage) {
-          isAbleToLoadRoom = false
-          $content.find('.room-list .scrollspy').hide()
+          isAbleToLoadRoom = false;
+          $content.find('.room-list .load-more').hide();
         }
-        var rooms = roomData.map(roomFormatter).join('')
-        $(rooms).insertBefore('.room-list .scrollspy')
-      })
-  }, 100)
+        var rooms = roomData.map(roomFormatter).join('');
+        $(rooms).insertBefore('.room-list .load-more');
+      });
+  }, 100);
 
-  function ChatList() {
-    qiscus.loadRoomList().then(function(rooms) {
-      if (rooms.length === 0) $content.html(Empty())
-      else $content.html(RoomList(rooms))
-    })
+  function handleNewMessage(comment) {
+    if (newMessageIds.includes(comment.id)) return;
+    newMessageIds.push(comment.id);
 
-    return Empty()
+    var roomId = comment.room_id;
+    var $room = $content.find('.room-item[data-room-id="' + roomId + '"]');
+    if ($room.length === 0) return;
+    $room.find('.room-last-message').text(escapeHTML(comment.message));
+    var $unreadCount = $room.find('.room-unread-count');
+    var lastUnreadCount = Number($unreadCount.text());
+    $unreadCount.removeClass('hidden').text(lastUnreadCount + 1);
+    $content.find('.ChatList .room-list').prepend($room.detach());
   }
 
-  ChatList.path = '/chat'
-  return ChatList
-})
+  function bindEvents($content) {
+    $content
+      .off('.ChatList')
+      .on('click.ChatList', '.ChatList .room-item', function (event) {
+        event.preventDefault();
+        newMessageIds.length = 0;
+        var target = $(event.currentTarget);
+        var roomId = target.data('room-id');
+        qiscus.getRoomById(roomId).then(function (data) {
+          console.log("room data", data);
+          route.push('/chat-room', {
+            roomId: data.id,
+            roomName: data.name,
+            roomAvatar: data.avatar,
+          });
+        });
+      })
+      .on('click.ChatList', '.ChatList .start-chat, .ChatList .fab-new-chat', function (event) {
+        event.preventDefault();
+        route.push('/users');
+      })
+      .on('click.ChatList', '.ChatList #profile-btn', function () {
+        route.push('/profile');
+      })
+      .on('click.ChatList', '.ChatList .load-more button', function (event) {
+        event.preventDefault();
+        var childLength = $content.find('.room-list').children().length - 1;
+        loadRooms(childLength);
+      });
+
+    emitter.off('qiscus::new-message', handleNewMessage);
+    emitter.on('qiscus::new-message', handleNewMessage);
+  }
+
+  function mount() {
+    qiscus.loadRoomList().then(function (rooms) {
+      if (rooms.length === 0) $content.html(Empty());
+      else $content.html(RoomList(rooms));
+    });
+  }
+
+  function template() {
+    return Empty();
+  }
+
+  return createPage({
+    path: '/chat',
+    template: template,
+    bindEvents: bindEvents,
+    onMount: mount,
+  });
+});

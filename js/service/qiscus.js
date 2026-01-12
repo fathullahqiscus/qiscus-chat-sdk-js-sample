@@ -162,58 +162,86 @@ define(['service/emitter', 'jquery'], function (emitter, $) {
 
 	// var appId = 'sdksample';
 	var appId = window.APP_ID;
+	var isInitialized = false;
 
-	// qiscus.debugMode = true;
-	qiscus.debugMQTTMode = true;
-	// window.qiscus = qiscus
-	qiscus.init({
-		AppId: appId,
-		options: {
-			loginSuccessCallback: function (authData) {
-				console.log('@login-success', authData);
-				emitter.emit('qiscus::login-success', authData);
-				qiscus.realtimeAdapter.mqtt.on('connect', function () {
-					console.log('TIMEIT', '@mqtt.connect', new Date().toISOString());
-				});
+	// Function to initialize Qiscus SDK
+	function initQiscus(appIdToUse) {
+		if (isInitialized) {
+			console.log('Qiscus already initialized');
+			return;
+		}
+
+		var finalAppId = appIdToUse || window.APP_ID;
+
+		if (!finalAppId) {
+			console.log('No App ID provided, skipping initialization');
+			return;
+		}
+
+		console.log('Initializing Qiscus with App ID:', finalAppId);
+
+		// qiscus.debugMode = true;
+		qiscus.debugMQTTMode = true;
+		// window.qiscus = qiscus
+		qiscus.init({
+			AppId: finalAppId,
+			options: {
+				loginSuccessCallback: function (authData) {
+					console.log('@login-success', authData);
+					emitter.emit('qiscus::login-success', authData);
+					qiscus.realtimeAdapter.mqtt.on('connect', function () {
+						console.log('TIMEIT', '@mqtt.connect', new Date().toISOString());
+					});
+				},
+				newMessagesCallback: function (messages) {
+					messages.forEach(function (it) {
+						emitter.emit('qiscus::new-message', it);
+					});
+				},
+				presenceCallback: function (data) {
+					var isOnline = data.split(':')[0] === '1';
+					var lastOnline = new Date(Number(data.split(':')[1]));
+					emitter.emit('qiscus::online-presence', {
+						isOnline: isOnline,
+						lastOnline: lastOnline,
+					});
+				},
+				commentReadCallback: function (data) {
+					emitter.emit('qiscus::comment-read', data);
+				},
+				commentDeliveredCallback: function (data) {
+					emitter.emit('qiscus::comment-delivered', data);
+				},
+				typingCallback: function (data) {
+					emitter.emit('qiscus::typing', data);
+				},
+				commentDeletedCallback: function (data) {
+					emitter.emit('qiscus::comment-deleted', data);
+				},
+				roomClearedCallback: function (data) {
+					console.log('@room-cleared', data)
+				},
+				roomChangedCallback: function (data) {
+					console.log('@room-changed', data)
+				},
+				onReconnectCallback: function (data) {
+					console.log('@reconnect', data)
+				},
 			},
-			newMessagesCallback: function (messages) {
-				messages.forEach(function (it) {
-					emitter.emit('qiscus::new-message', it);
-				});
-			},
-			presenceCallback: function (data) {
-				var isOnline = data.split(':')[0] === '1';
-				var lastOnline = new Date(Number(data.split(':')[1]));
-				emitter.emit('qiscus::online-presence', {
-					isOnline: isOnline,
-					lastOnline: lastOnline,
-				});
-			},
-			commentReadCallback: function (data) {
-				emitter.emit('qiscus::comment-read', data);
-			},
-			commentDeliveredCallback: function (data) {
-				emitter.emit('qiscus::comment-delivered', data);
-			},
-			typingCallback: function (data) {
-				emitter.emit('qiscus::typing', data);
-			},
-			commentDeletedCallback: function (data) {
-				emitter.emit('qiscus::comment-deleted', data);
-			},
-			roomClearedCallback: function (data) {
-				console.log('@room-cleared', data)
-			},
-			roomChangedCallback: function (data) {
-				console.log('@room-changed', data)
-			},
-			onReconnectCallback: function (data) {
-				console.log('@reconnect', data)
-			},
-		},
-	});
-	console.log('TIMEIT', new Date().toISOString());
-	console.log('qiscus.isInit', qiscus.isInit, new Date().toISOString());
+		});
+
+		isInitialized = true;
+		console.log('TIMEIT', new Date().toISOString());
+		console.log('qiscus.isInit', qiscus.isInit, new Date().toISOString());
+	}
+
+	// Auto-initialize if App ID is available
+	if (window.APP_ID) {
+		initQiscus(window.APP_ID);
+	}
+
+	// Expose initQiscus globally so it can be called from app.js
+	window.initQiscus = initQiscus;
 
 	QiscusSDKCore.prototype._generateUniqueId = function () {
 		return `javascript-${Date.now()}`;
@@ -259,24 +287,24 @@ define(['service/emitter', 'jquery'], function (emitter, $) {
 	// Here is an implementation of interceptor for semi translate
 	/*
   qiscus.intercept(Qiscus.Interceptor.MESSAGE_BEFORE_SENT, function (message) {
-    return message;
+	return message;
   });
   qiscus.intercept(Qiscus.Interceptor.MESSAGE_BEFORE_RECEIVED, async function (
-    message
+	message
   ) {
-    const content = message.message.replace(/(qis)(cus)/im, function (
-      _,
-      $1,
-      $2
-    ) {
-      return `**${$1.toLowerCase()}**${$2.toLowerCase()}`;
-    });
+	const content = message.message.replace(/(qis)(cus)/im, function (
+	  _,
+	  $1,
+	  $2
+	) {
+	  return `**${$1.toLowerCase()}**${$2.toLowerCase()}`;
+	});
 
-    Object.assign(message, {
-      message: conv.makeHtml(content),
-      extras: Object.assign(message.extras || {}, { before_received: true }),
-    });
-    return message;
+	Object.assign(message, {
+	  message: conv.makeHtml(content),
+	  extras: Object.assign(message.extras || {}, { before_received: true }),
+	});
+	return message;
   });
   */
 
