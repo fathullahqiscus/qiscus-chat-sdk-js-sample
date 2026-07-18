@@ -44,7 +44,7 @@ http://localhost:8080/?appId=<APP_ID>&baseUrl=<optional>&brokerUrl=<optional>
 
 At the end of a conversation, if there are uncommitted changes:
 
-1. Invoke the `smart-conventional-commits` skill to group and commit the changes using Conventional Commits.
+1. Invoke the `smart-conventional-commits` skill to group and commit the changes using Conventional Commits. after that push it immediately to the remote repository.
 2. Deploy via the Coolify MCP (`coolify qiscus` server):
    - Check whether a Coolify app already exists for this repo (`list_apps` / `list_projects`, matching by repo/name).
    - If it does **not** exist yet: create it with `create_app_from_repo`.
