@@ -7,17 +7,37 @@ define([
 ], function ($, createPage, route, $content, qiscus) {
   var avatarBlobURL = null;
 
+  function LogoutConfirm() {
+    return `
+      <div class="LogoutConfirm" style="display:none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content-simple">
+          <h3 class="modal-title">Log out</h3>
+          <p class="modal-description">Are you sure you want to log out from this account?</p>
+          <div class="modal-actions">
+            <button type="button" id="cancel-logout-btn" class="btn-cancel">Cancel</button>
+            <button type="button" id="confirm-logout-btn" class="btn-danger">Log out</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function template() {
     var avatarURL = qiscus.userData.avatar_url;
     var username = qiscus.userData.username;
     var userId = qiscus.userData.email;
     return `
       <div class="Profile">
+        ${LogoutConfirm()}
         <div class="toolbar">
           <button id="back-btn" type="button">
             <i class="icon icon-arrow-left-green"></i>
           </button>
           <div class="toolbar-title">Profile</div>
+          <button id="logout-btn" type="button" class="power-btn" title="Log out">
+            <i class="icon icon-power"></i>
+          </button>
         </div>
         <div class="avatar-container">
           <input id="input-avatar" type="file" accept="image/*" class="hidden">
@@ -48,9 +68,6 @@ define([
             <input id="input-user-id" type="text" value="${userId}" disabled>
           </div>
           <div class="spacer"></div>
-          <button type="button" id="logout-btn" class="logout-btn">
-            <i class="icon icon-logout"></i> Logout
-          </button>
         </div>
       </div>
     `;
@@ -104,36 +121,43 @@ define([
       })
       .on('click.Profile', '.Profile #logout-btn', function (event) {
         event.preventDefault();
+        $content.find('.LogoutConfirm').fadeIn(200);
+      })
+      .on('click.Profile', '.Profile #cancel-logout-btn, .Profile .LogoutConfirm .modal-overlay', function (event) {
+        event.preventDefault();
+        $content.find('.LogoutConfirm').fadeOut(200);
+      })
+      .on('click.Profile', '.Profile #confirm-logout-btn', function (event) {
+        event.preventDefault();
 
-        // Show confirmation dialog
-        if (confirm('Are you sure you want to logout?')) {
-          console.log('🔴 Logging out... isLogin before:', qiscus.isLogin);
+        console.log('🔴 Logging out... isLogin before:', qiscus.isLogin);
 
-          // Manually clear authentication state
-          qiscus.isLogin = false;
-          qiscus.userData = {};
+        // Manually clear authentication state
+        qiscus.isLogin = false;
+        qiscus.userData = {};
 
-          // Clear localStorage
-          localStorage.removeItem('authdata');
+        // Clear localStorage
+        localStorage.removeItem('authdata');
 
-          try {
-            // Disconnect from Qiscus
-            qiscus.disconnect();
-          } catch (error) {
-            // Ignore disconnect errors - they're expected when terminating connections
-            console.log('Disconnect error (expected):', error.message);
-          }
-
-          console.log('🔴 Logged out. isLogin after:', qiscus.isLogin);
-
-          // Show success toast
-          toast.success('Logged out successfully');
-
-          // Redirect to login after clearing state
-          setTimeout(function () {
-            route.push('/login');
-          }, 200);
+        try {
+          // Disconnect from Qiscus
+          qiscus.disconnect();
+        } catch (error) {
+          // Ignore disconnect errors - they're expected when terminating connections
+          console.log('Disconnect error (expected):', error.message);
         }
+
+        console.log('🔴 Logged out. isLogin after:', qiscus.isLogin);
+
+        $content.find('.LogoutConfirm').fadeOut(200);
+
+        // Show success toast
+        toast.success('Logged out successfully');
+
+        // Redirect to login after clearing state
+        setTimeout(function () {
+          route.push('/login');
+        }, 200);
       });
   }
 

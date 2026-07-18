@@ -29,7 +29,13 @@
   font-size: 18px;
   text-align: center;
   color: #362C33;
-  text-indent: -40px;
+}
+
+.Profile .toolbar .power-btn {
+  color: #dc2626;
+}
+.Profile .toolbar .power-btn:hover {
+  background: #fee2e2;
 }
 
 .Profile .avatar-container {
@@ -111,20 +117,102 @@
   justify-content: center;
   align-items: center;
 }
-.Profile .logout-btn {
-  flex: 0 0 46px;
-  height: 46px;
-  background: white;
-  border: none;
-  justify-self: flex-end;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  padding-left: 16px;
-  text-indent: 20px;
-}
 .Profile .spacer {
   flex: 1;
+}
+
+/* Logout confirmation dialog — same modal design as room-info's ContactChooser */
+.LogoutConfirm {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.LogoutConfirm .modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+.LogoutConfirm .modal-content-simple {
+  position: relative;
+  z-index: 2;
+  width: 90%;
+  max-width: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+}
+
+.LogoutConfirm .modal-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c2c36;
+}
+
+.LogoutConfirm .modal-description {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.LogoutConfirm .modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.LogoutConfirm .btn-cancel,
+.LogoutConfirm .btn-danger {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.LogoutConfirm .btn-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.LogoutConfirm .btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.LogoutConfirm .btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.LogoutConfirm .btn-danger:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+@media (max-width: 480px) {
+  .LogoutConfirm .modal-content-simple {
+    width: 92%;
+    padding: 18px;
+  }
 }
 
 @media (max-width: 480px) {

@@ -121,6 +121,9 @@
 .icon-logout {
   background-image: url(/img/icon-logout.svg);
 }
+.icon-power {
+  background-image: url(/img/icon-power.svg);
+}
 
 .icon-add-participant {
   background-image: url(/img/icon-add-participant.svg);
