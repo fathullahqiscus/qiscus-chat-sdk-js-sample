@@ -42,10 +42,18 @@ http://localhost:8080/?appId=<APP_ID>&baseUrl=<optional>&brokerUrl=<optional>
 
 ## End-of-session workflow
 
-At the end of a conversation, if there are uncommitted changes:
+Whenever there are uncommitted changes (after finishing a task, not just at the literal end of the conversation), do this immediately and automatically — do NOT ask for confirmation or permission first:
 
-1. Invoke the `smart-conventional-commits` skill to group and commit the changes using Conventional Commits. after that push it immediately to the remote repository.
+1. Invoke the `smart-conventional-commits` skill to group and commit the changes using Conventional Commits, then push immediately to the remote repository (`git push`).
 2. Deploy via the Coolify MCP (`coolify qiscus` server):
    - Check whether a Coolify app already exists for this repo (`list_apps` / `list_projects`, matching by repo/name).
-   - If it does **not** exist yet: create it with `create_app_from_repo`.
+   - If it does **not** exist yet: create it with `create_app_from_repo` (or `deploy_private_repo` if a `*.coolify.qiscus.io` domain is wanted — see Deployment notes below for the correct port).
    - If it **already** exists: redeploy the existing app with `deploy_app`, passing its existing `uuid` and `force: true`.
+
+This is a standing instruction: just do it, don't ask "should I commit/deploy now?" first.
+
+## Deployment notes (Coolify)
+
+- The current live app for this repo is `qiscus-chat-sdk-js-custom` (uuid `fujvguvkoftcq8f2uu6u26he`), a static site deployed via `deploy_private_repo` from `git@github.com:fathullahqiscus/qiscus-chat-sdk-js-sample.git@master`, reachable at `https://qiscus-chat-sdk-js-custom-e39f5a.coolify.qiscus.io`.
+- For any `build_pack: static` app on this Coolify instance, the container's nginx listens on **port 80 internally** — always pass `ports_exposes: "80"` when creating a static app, otherwise Coolify's proxy has nothing to route to and shows an "App not found" page even though the container itself is healthy.
+- Pushing to GitHub requires the `git@github-fathullahqiscus:...` SSH remote alias (see `~/.ssh/config`) — the default `github.com` host alias on this machine is bound to a different account (`amed12`) without write access to this repo.
