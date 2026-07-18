@@ -171,6 +171,7 @@
 
 .Chat .ToolbarChatRoom .room-meta {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -185,6 +186,24 @@
   font-size: 16px;
   text-align: center;
   color: #362c33;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .Chat .ToolbarChatRoom {
+    padding: 0 6px;
+  }
+  .Chat .ToolbarChatRoom button.btn-icon {
+    height: 36px;
+    width: 36px;
+    flex-basis: 36px;
+  }
+  .Chat .ToolbarChatRoom .room-name {
+    font-size: 14px;
+  }
 }
 
 .Chat .ToolbarChatRoom .online-status {
@@ -1234,6 +1253,19 @@
 }
 .Chat .comment-item .message-deleter button:hover {
   background: #f8fafc;
+}
+
+/* Hover to reveal the delete button doesn't work on touch devices — keep it
+   visible so it stays tappable on mobile/tablet. */
+@media (hover: none), (max-width: 768px) {
+  .Chat .comment-item .message-deleter {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+  }
+  .Chat .comment-item .message-meta {
+    display: flex;
+  }
 }
 
 .Chat .empty-title {

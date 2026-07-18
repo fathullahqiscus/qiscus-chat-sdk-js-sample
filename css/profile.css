@@ -126,3 +126,14 @@
 .Profile .spacer {
   flex: 1;
 }
+
+@media (max-width: 480px) {
+  .Profile .change-avatar-container button {
+    height: 44px;
+    width: 44px;
+  }
+  .Profile .field-group button {
+    width: 44px;
+    height: 44px;
+  }
+}

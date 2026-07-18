@@ -293,3 +293,19 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(14, 163, 113, 0.3);
 }
+
+@media (max-width: 480px) {
+  .RoomInfo .change-avatar-container button {
+    flex-basis: 44px;
+    height: 44px;
+    width: 44px;
+  }
+  .RoomInfo .field-group button {
+    width: 44px;
+    height: 44px;
+  }
+  .ContactChooser .modal-content-simple {
+    width: 92%;
+    padding: 18px;
+  }
+}
