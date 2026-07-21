@@ -15,10 +15,18 @@ define(function () {
       },
       emit(type, evt) {
         (all[type] || []).slice().map(function (handler) {
-          handler(evt);
+          try {
+            handler(evt);
+          } catch (err) {
+            console.error('Error in event handler for "' + type + '":', err);
+          }
         });
         (all['*'] || []).slice().map(function (handler) {
-          handler(type, evt);
+          try {
+            handler(type, evt);
+          } catch (err) {
+            console.error('Error in wildcard event handler for "' + type + '":', err);
+          }
         });
       }
     }

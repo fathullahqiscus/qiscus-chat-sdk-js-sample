@@ -175,6 +175,7 @@ define(['service/emitter', 'jquery'], function (emitter, $) {
 
 		if (!finalAppId) {
 			console.log('No App ID provided, skipping initialization');
+			emitter.emit('qiscus::init-error', { message: 'App ID kosong, tidak dapat menghubungkan ke live chat.' });
 			return;
 		}
 
@@ -183,16 +184,43 @@ define(['service/emitter', 'jquery'], function (emitter, $) {
 		// qiscus.debugMode = true;
 		qiscus.debugMQTTMode = true;
 		// window.qiscus = qiscus
-		qiscus.init({
-			AppId: finalAppId,
-			options: {
-				loginSuccessCallback: function (authData) {
-					console.log('@login-success', authData);
-					emitter.emit('qiscus::login-success', authData);
-					qiscus.realtimeAdapter.mqtt.on('connect', function () {
-						console.log('TIMEIT', '@mqtt.connect', new Date().toISOString());
-					});
-				},
+
+		// Guard: if login-success hasn't fired within this window, treat init as failed/stuck
+		var initTimeout = setTimeout(function () {
+			if (!qiscus.isLogin) {
+				emitter.emit('qiscus::init-error', {
+					message: 'Gagal menghubungkan ke live chat (waktu tunggu habis). Periksa App ID atau koneksi internet.',
+				});
+			}
+		}, 15000);
+
+		try {
+			qiscus.init({
+				AppId: finalAppId,
+				options: {
+					loginSuccessCallback: function (authData) {
+						clearTimeout(initTimeout);
+						isInitialized = true;
+						console.log('@login-success', authData);
+						emitter.emit('qiscus::login-success', authData);
+						qiscus.realtimeAdapter.mqtt.on('connect', function () {
+							console.log('TIMEIT', '@mqtt.connect', new Date().toISOString());
+							emitter.emit('qiscus::connection-restored');
+						});
+						qiscus.realtimeAdapter.mqtt.on('close', function () {
+							emitter.emit('qiscus::connection-lost');
+						});
+						qiscus.realtimeAdapter.mqtt.on('error', function (err) {
+							emitter.emit('qiscus::connection-lost', { message: err && err.message });
+						});
+					},
+					loginFailedCallback: function (error) {
+						clearTimeout(initTimeout);
+						console.error('@login-failed', error);
+						emitter.emit('qiscus::init-error', {
+							message: 'Login ke live chat gagal: ' + ((error && error.message) || 'App ID tidak valid.'),
+						});
+					},
 				newMessagesCallback: function (messages) {
 					messages.forEach(function (it) {
 						emitter.emit('qiscus::new-message', it);
@@ -225,14 +253,21 @@ define(['service/emitter', 'jquery'], function (emitter, $) {
 					console.log('@room-changed', data)
 				},
 				onReconnectCallback: function (data) {
-					console.log('@reconnect', data)
+					console.log('@reconnect', data);
+					emitter.emit('qiscus::connection-restored');
 				},
 			},
 		});
 
-		isInitialized = true;
 		console.log('TIMEIT', new Date().toISOString());
 		console.log('qiscus.isInit', qiscus.isInit, new Date().toISOString());
+		} catch (err) {
+			clearTimeout(initTimeout);
+			console.error('Qiscus init threw synchronously:', err);
+			emitter.emit('qiscus::init-error', {
+				message: 'Gagal menginisialisasi live chat: ' + ((err && err.message) || 'Terjadi kesalahan tak terduga.'),
+			});
+		}
 	}
 
 	// Auto-initialize if App ID is available

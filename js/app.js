@@ -30,6 +30,28 @@ define([
   window.route = route;
   window.qiscus = qiscus;
   window.toast = toast; // Expose toast globally
+  window.__qiscusInitFailed = false;
+
+  var hasSeenConnectionLoss = false;
+
+  emitter.on('qiscus::init-error', function (data) {
+    window.__qiscusInitFailed = true;
+    var message = (data && data.message) || 'Gagal menghubungkan ke live chat.';
+    console.error('Qiscus init error:', message);
+    toast.error(message);
+  });
+
+  emitter.on('qiscus::connection-lost', function () {
+    hasSeenConnectionLoss = true;
+    toast.warning('Koneksi live chat terputus, mencoba menyambung ulang...');
+  });
+
+  emitter.on('qiscus::connection-restored', function () {
+    if (hasSeenConnectionLoss) {
+      hasSeenConnectionLoss = false;
+      toast.success('Koneksi live chat tersambung kembali');
+    }
+  });
 
   // Handle unhandled promise rejections (e.g., from disconnect during logout)
   window.addEventListener('unhandledrejection', function (event) {
@@ -68,10 +90,16 @@ define([
       $content.html('<div class="PageNotFound">Page not found</div>');
       return;
     }
-    var view = page.render(state);
-    $content.html(view);
-    if (typeof page.mount === 'function') {
-      page.mount(state);
+    try {
+      var view = page.render(state);
+      $content.html(view);
+      if (typeof page.mount === 'function') {
+        page.mount(state);
+      }
+    } catch (err) {
+      console.error('Error rendering page "' + path + '":', err);
+      toast.error('Terjadi kesalahan saat memuat halaman. Silakan coba lagi.');
+      $content.html('<div class="PageError">Gagal memuat halaman. Silakan muat ulang.</div>');
     }
   }
 
@@ -114,6 +142,10 @@ define([
   });
   $('.toggle-widget-btn').on('click', function (event) {
     event.preventDefault();
+    if (window.__qiscusInitFailed) {
+      toast.error('Live chat tidak dapat dibuka karena gagal terhubung ke server. Periksa App ID atau koneksi internet, lalu muat ulang halaman.');
+      return;
+    }
     $('.widget-container').slideDown();
     // Hide toggle button when widget is open
     $('.toggle-widget-btn').fadeOut(200);

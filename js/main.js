@@ -19,4 +19,13 @@ requirejs.config({
 	}
 });
 
+requirejs.onError = function (err) {
+	console.error('RequireJS module load error:', err);
+	var banner = document.createElement('div');
+	banner.textContent = 'Gagal memuat aplikasi chat. Periksa koneksi internet Anda, lalu muat ulang halaman.';
+	banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;' +
+		'padding:12px 16px;font-family:sans-serif;font-size:14px;text-align:center;';
+	document.body.appendChild(banner);
+};
+
 requirejs(['app']);
