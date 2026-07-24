@@ -6,6 +6,7 @@ define([
   'service/qiscus'
 ], function ($, createPage, route, $content, qiscus) {
   var avatarBlobURL = null;
+  var pendingAppId = null;
 
   function LogoutConfirm() {
     return `
@@ -23,13 +24,33 @@ define([
     `;
   }
 
+  function ChangeAppIdConfirm() {
+    return `
+      <div class="ChangeAppIdConfirm" style="display:none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content-simple">
+          <h3 class="modal-title">Change App ID</h3>
+          <p class="modal-description">
+            Changing the App ID will log you out and reload the page with the new App ID. Continue?
+          </p>
+          <div class="modal-actions">
+            <button type="button" id="cancel-change-app-id-btn" class="btn-cancel">Cancel</button>
+            <button type="button" id="confirm-change-app-id-btn" class="btn-danger">Change App ID</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function template() {
     var avatarURL = qiscus.userData.avatar_url;
     var username = qiscus.userData.username;
     var userId = qiscus.userData.email;
+    var currentAppId = window.APP_ID || localStorage.getItem('qiscus_app_id') || '';
     return `
       <div class="Profile">
         ${LogoutConfirm()}
+        ${ChangeAppIdConfirm()}
         <div class="toolbar">
           <button id="back-btn" type="button">
             <i class="icon icon-arrow-left-green"></i>
@@ -66,6 +87,15 @@ define([
               <i class="icon icon-id-card"></i>
             </div>
             <input id="input-user-id" type="text" value="${userId}" disabled>
+          </div>
+          <div class="field-group">
+            <div class="icon-container">
+              <i class="icon icon-hash"></i>
+            </div>
+            <input id="input-app-id" type="text" value="${currentAppId}" disabled>
+            <button id="edit-app-id-btn" type="button">
+              <i class="icon icon-pencil-grey"></i>
+            </button>
           </div>
           <div class="spacer"></div>
         </div>
@@ -118,6 +148,47 @@ define([
             localStorage.setItem('authdata', JSON.stringify(qiscus.userData));
           });
         }
+      })
+      .on('click.Profile', '.Profile #edit-app-id-btn', function (event) {
+        event.preventDefault();
+        $content
+          .find('#input-app-id')
+          .removeAttr('disabled')
+          .focus();
+        $(this).addClass('hidden');
+      })
+      .on('keydown.Profile', '.Profile #input-app-id', function (event) {
+        if (event.keyCode !== 13) return;
+
+        var newAppId = event.target.value.trim();
+        var currentAppId = window.APP_ID || localStorage.getItem('qiscus_app_id') || '';
+
+        $(this).attr('disabled', true);
+        $content.find('#edit-app-id-btn').removeClass('hidden');
+
+        if (!newAppId || newAppId === currentAppId) {
+          $(this).val(currentAppId);
+          return;
+        }
+
+        pendingAppId = newAppId;
+        $content.find('.ChangeAppIdConfirm').fadeIn(200);
+      })
+      .on('click.Profile', '.Profile #cancel-change-app-id-btn, .Profile .ChangeAppIdConfirm .modal-overlay', function (event) {
+        event.preventDefault();
+        pendingAppId = null;
+        var currentAppId = window.APP_ID || localStorage.getItem('qiscus_app_id') || '';
+        $content.find('#input-app-id').val(currentAppId);
+        $content.find('.ChangeAppIdConfirm').fadeOut(200);
+      })
+      .on('click.Profile', '.Profile #confirm-change-app-id-btn', function (event) {
+        event.preventDefault();
+        if (!pendingAppId) return;
+
+        localStorage.setItem('qiscus_app_id', pendingAppId);
+        localStorage.removeItem('authdata');
+
+        window.location.reload();
       })
       .on('click.Profile', '.Profile #logout-btn', function (event) {
         event.preventDefault();

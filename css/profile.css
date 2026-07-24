@@ -122,7 +122,8 @@
 }
 
 /* Logout confirmation dialog — same modal design as room-info's ContactChooser */
-.LogoutConfirm {
+.LogoutConfirm,
+.ChangeAppIdConfirm {
   position: fixed;
   top: 0;
   left: 0;
@@ -134,7 +135,8 @@
   justify-content: center;
 }
 
-.LogoutConfirm .modal-overlay {
+.LogoutConfirm .modal-overlay,
+.ChangeAppIdConfirm .modal-overlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -145,7 +147,8 @@
   z-index: 1;
 }
 
-.LogoutConfirm .modal-content-simple {
+.LogoutConfirm .modal-content-simple,
+.ChangeAppIdConfirm .modal-content-simple {
   position: relative;
   z-index: 2;
   width: 90%;
@@ -156,21 +159,24 @@
   padding: 24px;
 }
 
-.LogoutConfirm .modal-title {
+.LogoutConfirm .modal-title,
+.ChangeAppIdConfirm .modal-title {
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
   color: #2c2c36;
 }
 
-.LogoutConfirm .modal-description {
+.LogoutConfirm .modal-description,
+.ChangeAppIdConfirm .modal-description {
   margin: 0 0 16px 0;
   font-size: 13px;
   color: #666;
   line-height: 1.5;
 }
 
-.LogoutConfirm .modal-actions {
+.LogoutConfirm .modal-actions,
+.ChangeAppIdConfirm .modal-actions {
   display: flex;
   gap: 12px;
   margin-top: 20px;
@@ -178,7 +184,9 @@
 }
 
 .LogoutConfirm .btn-cancel,
-.LogoutConfirm .btn-danger {
+.LogoutConfirm .btn-danger,
+.ChangeAppIdConfirm .btn-cancel,
+.ChangeAppIdConfirm .btn-danger {
   padding: 10px 20px;
   border: none;
   border-radius: 8px;
@@ -188,28 +196,33 @@
   transition: all 0.2s;
 }
 
-.LogoutConfirm .btn-cancel {
+.LogoutConfirm .btn-cancel,
+.ChangeAppIdConfirm .btn-cancel {
   background: #f3f4f6;
   color: #6b7280;
 }
 
-.LogoutConfirm .btn-cancel:hover {
+.LogoutConfirm .btn-cancel:hover,
+.ChangeAppIdConfirm .btn-cancel:hover {
   background: #e5e7eb;
 }
 
-.LogoutConfirm .btn-danger {
+.LogoutConfirm .btn-danger,
+.ChangeAppIdConfirm .btn-danger {
   background: #dc2626;
   color: white;
 }
 
-.LogoutConfirm .btn-danger:hover {
+.LogoutConfirm .btn-danger:hover,
+.ChangeAppIdConfirm .btn-danger:hover {
   background: #b91c1c;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 @media (max-width: 480px) {
-  .LogoutConfirm .modal-content-simple {
+  .LogoutConfirm .modal-content-simple,
+  .ChangeAppIdConfirm .modal-content-simple {
     width: 92%;
     padding: 18px;
   }
