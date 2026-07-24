@@ -183,11 +183,21 @@ define([
       return;
     }
 
+    var previousAppId = localStorage.getItem('qiscus_app_id');
+
     console.log('🚀 Initializing with App ID:', appId);
 
     // Save App ID to localStorage
     localStorage.setItem('qiscus_app_id', appId);
     window.APP_ID = appId;
+
+    // Changing to a different App ID requires a clean reload so the SDK
+    // and any existing session aren't left bound to the old App ID.
+    if (previousAppId && previousAppId !== appId) {
+      localStorage.removeItem('authdata');
+      window.location.reload();
+      return;
+    }
 
     // Initialize Qiscus with the App ID
     if (typeof window.initQiscus === 'function') {
@@ -200,6 +210,14 @@ define([
 
     console.log('✅ Qiscus initialized successfully!');
     toast.success('Qiscus SDK initialized successfully!');
+  });
+
+  // Change App ID button on the SDK Configuration dashboard
+  $('#change-app-id-btn').on('click', function (event) {
+    event.preventDefault();
+    var currentAppId = window.APP_ID || localStorage.getItem('qiscus_app_id') || '';
+    $('#app-id-input').val(currentAppId);
+    $('#app-id-setup').removeClass('hidden');
   });
 
   // Allow Enter key to submit form
