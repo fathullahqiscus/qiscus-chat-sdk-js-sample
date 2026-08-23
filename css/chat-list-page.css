@@ -691,6 +691,7 @@
 
 .AttachmentCaptioning .image-preview-container {
   flex: 1;
+  min-height: 0;
 }
 
 .AttachmentCaptioning .image-preview-container .attachment-preview {
@@ -1457,6 +1458,7 @@
 
 .AttachmentCaptioning .image-preview-container {
   flex: 1;
+  min-height: 0;
   background: #f8fafc;
 }
 
