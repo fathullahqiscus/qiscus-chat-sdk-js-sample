@@ -1,19 +1,31 @@
 define([], function () {
   var statusElement;
   var sdkState = 'unknown';
+  var hideTimer;
 
-  function render() {
+  function hide() {
+    statusElement = statusElement || document.getElementById('connectivity-status');
+    if (statusElement) statusElement.className = 'connectivity-status is-hidden';
+  }
+
+  function show(message, className, duration) {
     statusElement = statusElement || document.getElementById('connectivity-status');
     if (!statusElement) return;
+    window.clearTimeout(hideTimer);
+    statusElement.textContent = message;
+    statusElement.className = 'connectivity-status ' + className;
+    if (duration) hideTimer = window.setTimeout(hide, duration);
+  }
+
+  function render() {
     if (!navigator.onLine) {
-      statusElement.textContent = 'Anda sedang offline. Live chat membutuhkan koneksi internet.';
-      statusElement.className = 'connectivity-status connectivity-status-offline';
+      show('Anda sedang offline. Live chat membutuhkan koneksi internet.', 'connectivity-status-offline');
     } else if (sdkState === 'failed' || sdkState === 'disconnected') {
-      statusElement.textContent = 'Koneksi live chat tidak tersedia. Periksa jaringan atau muat ulang halaman.';
-      statusElement.className = 'connectivity-status connectivity-status-warning';
+      show('Koneksi live chat tidak tersedia. Periksa jaringan atau muat ulang halaman.', 'connectivity-status-warning');
+    } else if (sdkState === 'connected') {
+      show('Koneksi live chat tersambung kembali.', 'connectivity-status-online', 4000);
     } else {
-      statusElement.textContent = 'Online. Live chat siap digunakan.';
-      statusElement.className = 'connectivity-status connectivity-status-online';
+      hide();
     }
   }
 

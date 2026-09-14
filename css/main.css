@@ -39,11 +39,18 @@ body {
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .connectivity-status-online { background: #0c8a60; }
 .connectivity-status-offline { background: #b45309; }
 .connectivity-status-warning { background: #dc2626; }
+
+.connectivity-status.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+}
 
 /* Landing Page */
 .landing-page {

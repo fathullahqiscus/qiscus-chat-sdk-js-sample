@@ -50,6 +50,18 @@ test('connectivity service and accessible status banner are wired into the appli
   assert.match(service, /window\.addEventListener\('online'/);
 });
 
+test('normal connectivity stays quiet while recovery is a temporary snackbar', async () => {
+  const [html, service] = await Promise.all([
+    read('index.html'),
+    read('js/service/connectivity.js'),
+  ]);
+
+  assert.doesNotMatch(html, /connectivity-status-online/);
+  assert.doesNotMatch(service, /Online\. Live chat siap digunakan/);
+  assert.match(service, /window\.setTimeout/);
+  assert.match(service, /sdkState === 'connected'/);
+});
+
 test('README documents installation, public-cache audit, offline limits, and reset', async () => {
   const readme = await read('README.md');
 
