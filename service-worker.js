@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'qiscus-pwa-shell-';
-const CACHE_NAME = 'qiscus-pwa-shell-v2';
+const CACHE_NAME = 'qiscus-pwa-shell-v3';
 const SHELL_URL = '/';
 
 // Only public shell URLs are eligible for Cache Storage. All unknown URLs,

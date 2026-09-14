@@ -26,7 +26,7 @@ test('HTML links the manifest and safely registers the root worker', async () =>
 test('worker only owns a versioned public shell cache and provides navigation fallback', async () => {
   const worker = await read('service-worker.js');
 
-  assert.match(worker, /const CACHE_NAME = 'qiscus-pwa-shell-/);
+  assert.match(worker, /const CACHE_NAME = 'qiscus-pwa-shell-v3';/);
   assert.match(worker, /request\.mode === 'navigate'/);
   assert.match(worker, /caches\.match\(SHELL_URL\)/);
   assert.match(worker, /key\.startsWith\(CACHE_PREFIX\)/);
