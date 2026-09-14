@@ -1,0 +1,13 @@
+{
+  "name": "Qiscus Chat SDK Sample",
+  "short_name": "Qiscus Chat",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0ea371",
+  "icons": [
+    { "src": "/img/pwa-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/pwa-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

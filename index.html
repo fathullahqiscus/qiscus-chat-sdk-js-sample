@@ -6,6 +6,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 	<title>Qiscus SDK Javascript Core Example</title>
+	<meta name="theme-color" content="#0ea371" />
+	<meta name="application-name" content="Qiscus Chat SDK Sample" />
+	<link rel="manifest" href="/manifest.webmanifest" />
+	<link rel="icon" type="image/png" sizes="192x192" href="/img/pwa-icon-192.png" />
+	<link rel="apple-touch-icon" href="/img/pwa-icon-192.png" />
 
 	<link href="https://fonts.googleapis.com/css?family=Lato|Open+Sans" rel="stylesheet" />
 	<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
@@ -24,6 +29,7 @@
 </head>
 
 <body>
+	<div id="connectivity-status" class="connectivity-status connectivity-status-online" role="status" aria-live="polite">Memeriksa koneksi live chat…</div>
 	<!-- Landing Page -->
 	<div id="landing-page" class="landing-page">
 		<div class="landing-container">
@@ -185,7 +191,7 @@
   }
 </script> -->
 
-	<script src="https://unpkg.com/lodash"></script>
+	<script src="https://unpkg.com/lodash@4.17.21/lodash.min.js"></script>
 	<!-- Qiscus SDK is loaded from CDN below -->
 	<!-- Local development files have been removed to reduce project size -->
 	<script></script>
@@ -220,6 +226,11 @@
 	<script>
 		window.addEventListener('load', function () {
 			if (typeof QiscusSDKCore === 'undefined') {
+				var connectivityStatus = document.getElementById('connectivity-status');
+				if (connectivityStatus) {
+					connectivityStatus.textContent = 'SDK live chat tidak dapat dimuat. Periksa koneksi internet Anda, lalu muat ulang halaman.';
+					connectivityStatus.className = 'connectivity-status connectivity-status-warning';
+				}
 				var banner = document.createElement('div');
 				banner.textContent = 'Gagal memuat SDK live chat (unpkg.com tidak dapat dijangkau). Periksa koneksi internet Anda, lalu muat ulang halaman.';
 				banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#dc2626;color:#fff;' +
@@ -229,6 +240,15 @@
 		});
 	</script>
 	<script src="js/lib/require.js" data-main="js/main.js"></script>
+	<script>
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function () {
+				navigator.serviceWorker.register('/service-worker.js').catch(function (error) {
+					console.warn('PWA service worker registration failed:', error);
+				});
+			});
+		}
+	</script>
 </body>
 
 </html>

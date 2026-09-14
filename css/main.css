@@ -27,6 +27,24 @@ body {
   overflow-x: hidden;
 }
 
+.connectivity-status {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100000;
+  padding: 9px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.connectivity-status-online { background: #0c8a60; }
+.connectivity-status-offline { background: #b45309; }
+.connectivity-status-warning { background: #dc2626; }
+
 /* Landing Page */
 .landing-page {
   min-height: 100vh;

@@ -5,6 +5,7 @@ define([
   'service/emitter',
   'service/content',
   'service/toast',
+	'service/connectivity',
   'pages/login',
   'pages/chat-list',
   'pages/chat',
@@ -19,6 +20,7 @@ define([
   emitter,
   $content,
   toast,
+	connectivity,
   LoginPage,
   ChatListPage,
   ChatPage,
@@ -31,22 +33,26 @@ define([
   window.qiscus = qiscus;
   window.toast = toast; // Expose toast globally
   window.__qiscusInitFailed = false;
+	connectivity.start();
 
   var hasSeenConnectionLoss = false;
 
   emitter.on('qiscus::init-error', function (data) {
     window.__qiscusInitFailed = true;
+	connectivity.setSdkState('failed');
     var message = (data && data.message) || 'Gagal menghubungkan ke live chat.';
     console.error('Qiscus init error:', message);
     toast.error(message);
   });
 
   emitter.on('qiscus::connection-lost', function () {
+	connectivity.setSdkState('disconnected');
     hasSeenConnectionLoss = true;
     toast.warning('Koneksi live chat terputus, mencoba menyambung ulang...');
   });
 
   emitter.on('qiscus::connection-restored', function () {
+	connectivity.setSdkState('connected');
     if (hasSeenConnectionLoss) {
       hasSeenConnectionLoss = false;
       toast.success('Koneksi live chat tersambung kembali');

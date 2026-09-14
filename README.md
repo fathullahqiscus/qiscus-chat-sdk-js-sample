@@ -29,6 +29,24 @@ $ cd qiscus-chat-sdk-js-sample
 $ http-server
 ```
 
+## Progressive Web App
+
+The sample can be installed on HTTPS or `localhost` in browsers that support web app installation. Visit online once and wait for the page to finish loading so the service worker can cache the public shell. Chrome and Edge expose their normal install UI; on iOS/iPadOS Safari, use **Share → Add to Home Screen**.
+
+The installed app starts at `/` without URL query parameters. A previously saved App ID is used as usual. Open a URL containing custom `appId`, `baseUrl`, or `brokerUrl` again when those development settings are needed.
+
+### Offline behavior and privacy
+
+This first PWA phase only makes the public app shell available offline. Login, rooms, messages, file uploads, attachments, and live chat require an internet connection; no send is queued or reported as successful before the SDK confirms it. A first visit while offline cannot show the shell.
+
+Cache Storage contains only reviewed public HTML, local CSS/JS/images, and pinned boot-time CDN scripts. It never caches chat APIs, JWT requests, credentials, messages, attachments, or remote user images. To audit this, open DevTools → Application → Cache Storage after login/chat/logout and confirm the only app cache is named `qiscus-pwa-shell-*` and contains public shell files.
+
+### QA and reset
+
+To test offline mode, load the app online, wait for the service worker to activate in DevTools → Application, then select **Offline** in the Network panel and reload. The shell and offline status must appear. Return online and reload to reconnect the SDK. To test an update, deploy a new shell version, reopen the app, and confirm the old `qiscus-pwa-shell-*` cache is removed after the new worker activates.
+
+To reset the PWA during development, open DevTools → Application → Service Workers, click **Unregister**, then clear the `qiscus-pwa-shell-*` cache from Cache Storage and reload online. This does not clear the app’s existing local storage; clear site data separately only when you intentionally need to reset login or the saved App ID.
+
 ## Contribution
 Qiscus Chat SDK Sample UI is fully open-source. All contributions and suggestions are welcome!
 
